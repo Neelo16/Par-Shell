@@ -6,7 +6,7 @@
 #include "parshell.h"
 #include "commandlinereader.h"
 
-#define ARGNUM 7						// nome_comando + 5 argumentos(maximo) + argumento NULL
+#define ARGNUM 7						
 
 int main(int argc, char const *argv[])
 {
@@ -14,7 +14,6 @@ int main(int argc, char const *argv[])
 	int i;
 	int childCnt = 0;
 
-	// Inicializar o vetor argvector
 	for(i=0;i<ARGNUM;i++)
 		argvector[i] = NULL;
 
@@ -23,19 +22,43 @@ int main(int argc, char const *argv[])
         if (numArgs < 0)
         {
             perror("Error reading arguments");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
         if (!strcmp("exit", argvector[0])) {
             int *pidArray = (int*) malloc(sizeof(int)*childCnt);
             int *statusArray = (int*) malloc(sizeof(int)*childCnt);
-            for (i = 0; i < childCnt; i++) {
-                pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
-                
+            if (childCnt != 0 && (pidArray == NULL || statusArray == NULL))
+                perror("Error allocating memory");
+
+            else {
+                for (i = 0; i < childCnt; i++) {
+                    pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
+                    if (!WIFEXITED(statusArray[i]))
+                        perror("Error ocurred in child process");
+                }
+                for (i = 0; i < childCnt; i++)
+                    printf("%d %d", pidArray[i], statusArray[i]);
             }
+            free(pidArray);
+            free(statusArray);
+        }
+        else {
+            int pid = fork();
+            if (pid < 0) {
+                perror("Error forking process");
+                exit(EXIT_FAILURE);
+            }
+            else if (pid == 0) {
+                execv(argvector[0], argvector);
+                perror("Error executing process");
+                exit(EXIT_FAILURE);
+            }
+            else
+                childCnt++;
+
         }
     }
 
-	//exit
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
