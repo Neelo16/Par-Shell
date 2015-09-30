@@ -4,5 +4,6 @@
 #define ARGNUM 7
 
 void exitShell(int childCnt);
+int createProcess(char *argVector[]);
 
 #endif

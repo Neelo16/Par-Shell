@@ -9,6 +9,7 @@
 
 void exitShell(int childCnt) {
 
+    int i;
     int *pidArray = (int*) malloc(sizeof(int)*childCnt); /* saves children pid for exiting the shell */
     int *statusArray = (int*) malloc(sizeof(int)*childCnt); /* same as above for the status */
 
@@ -28,7 +29,8 @@ void exitShell(int childCnt) {
     free(statusArray);
 }
 
-int createProcess(char *argVector) {
+int createProcess(char *argVector[]) {
+    /* Returns 1 if sucessful */
     int pid = fork();
     int i;
     if (pid < 0) {
@@ -54,7 +56,7 @@ int main(int argc, char const *argv[]) {
 	int i; 
 	int childCnt = 0;
 
-	for(i=0;i<ARGNUM;i++)
+	for(i = 0; i < ARGNUM; i++)
 		argVector[i] = NULL;
 
     while (1) {
@@ -70,7 +72,8 @@ int main(int argc, char const *argv[]) {
             break;
         }
         else
-            childCnt += createProcess(argVector);
+            if(createProcess(argVector))
+                childCnt++;
     }
 
 	
