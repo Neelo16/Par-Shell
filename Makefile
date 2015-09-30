@@ -6,7 +6,7 @@ EXT = c
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(EXT)=.o))
 CFLAGS =-Wextra -Wall -pedantic -g
 CC = gcc
-TARGET = par-shell
+TARGET = bin/main
 
 all: $(TARGET)
 
