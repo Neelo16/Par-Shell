@@ -6,7 +6,7 @@ EXT = c
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(EXT)=.o))
 CFLAGS =-Wextra -Wall -pedantic -g
 CC = gcc
-TARGET = bin/main
+TARGET = par-shell
 
 all: $(TARGET)
 
@@ -21,6 +21,4 @@ clean:
 	@echo Cleaning...
 	rm -rf $(BUILDDIR) $(TARGET)
 
-run: $(TARGET)
-	@$<
 
