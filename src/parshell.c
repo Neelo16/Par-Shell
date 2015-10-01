@@ -54,18 +54,26 @@ int main(int argc, char const *argv[]) {
 
 	char *argVector[ARGNUM];
 	int i; 
+    char *user = getenv("USER");
 	int childCnt = 0;
+
+    if (user == NULL)
+        user = "user";
 
 	for(i = 0; i < ARGNUM; i++)
 		argVector[i] = NULL;
 
     while (1) {
-        int numArgs = readLineArguments(argVector, ARGNUM);
+        int numArgs;
+        printf("%s@par-shell$ ", user);
+        numArgs = readLineArguments(argVector, ARGNUM);
         if (numArgs < 0)
         {
             perror("Error reading arguments");
             exit(EXIT_FAILURE);
         }
+        else if (numArgs == 0)
+            continue;
         if (!strcmp("exit", argVector[0])) {
             exitShell(childCnt);
             free(*argVector);
