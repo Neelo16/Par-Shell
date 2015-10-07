@@ -26,3 +26,8 @@ You could be having a life changing experience right now!
 ## But I really like to ask questions...
 
 That's not a question.
+
+## I used Valgrind and it says there's memory leaks. Why?
+
+We outsourced a certain part of our program to inexperienced programmers who really didn't know what they were doing... we thought making a tool to read command line arguments was easy, but apparently not. Don't worry, the majority of the shell is being developed by the amazing team of 3 super professional engineers. If you ever feel like you're running out of RAM, just download some more at http://downloadmoreram.com/
+
