@@ -43,7 +43,6 @@ int createProcess(char *argVector[]) {
         exit(EXIT_FAILURE);
     }
     else {
-        free(*argVector);
         for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
         return 1;           
