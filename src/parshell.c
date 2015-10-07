@@ -32,7 +32,6 @@ void exitShell(int childCnt) {
 int createProcess(char *argVector[]) {
     /* Returns 1 if sucessful */
     int pid = fork();
-    int i;
     if (pid < 0) {
         perror("Error forking process");
         return 0;
@@ -43,7 +42,7 @@ int createProcess(char *argVector[]) {
         exit(EXIT_FAILURE);
     }
     else {
-        for(i = 0; i < ARGNUM; i++) 
+        for(int i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
         return 1;           
     }
