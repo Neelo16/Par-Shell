@@ -20,7 +20,7 @@ void exitShell(int childCnt) {
         for (i = 0; i < childCnt; i++) {
             pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
             if (!WIFEXITED(statusArray[i])) /* checks if child process terminated properly */
-                perror("Error ocurred in child process");
+                fprintf(stderr, "Error ocurred in child process\n");
         }
         for (i = 0; i < childCnt; i++)
             printf("%d %d\n", pidArray[i], WEXITSTATUS(statusArray[i]));
@@ -42,7 +42,8 @@ int createProcess(char *argVector[]) {
         exit(EXIT_FAILURE);
     }
     else {
-        for(int i = 0; i < ARGNUM; i++) 
+        int i;
+        for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
         return 1;           
     }
@@ -67,7 +68,7 @@ int main(int argc, char const *argv[]) {
         numArgs = readLineArguments(argVector, ARGNUM);
         if (numArgs < 0)
         {
-            perror("Error reading arguments");
+            fprintf(stderr, "Error reading arguments");
             exit(EXIT_FAILURE);
         }
         else if (numArgs == 0)
