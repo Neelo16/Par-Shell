@@ -78,7 +78,6 @@ int main(int argc, char const *argv[]) {
             continue;
         if (!strcmp("exit", argVector[0])) {
             exitShell(childCnt);
-            free(*argVector);
             break;
         }
         else
