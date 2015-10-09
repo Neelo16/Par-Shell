@@ -21,12 +21,12 @@ void exitShell(int childCnt) {
             pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
             if (pidArray[i] == -1)
                 perror("Error in wait");
-            else if (!WIFEXITED(statusArray[i])) /* checks if child process terminated properly */
-                fprintf(stderr, "Error ocurred in child process\n");
         }
         for (i = 0; i < childCnt; i++)
-            if (pidArray[i] != -1)
+            if (pidArray[i] != -1 && WIFEXITED(statusArray[i]))
                 printf("%d %d\n", pidArray[i], WEXITSTATUS(statusArray[i]));
+            else
+                printf("%d did not terminate successfully\n", pidArray[i]);
     }
     free(pidArray);
     free(statusArray);
