@@ -78,7 +78,7 @@ int main(int argc, char const *argv[]) {
             continue;
         if (!strcmp("exit", argVector[0])) {
             exitShell(childCnt);
-            break;
+            return EXIT_SUCCESS;
         }
         else
             if(createProcess(argVector))
@@ -86,5 +86,5 @@ int main(int argc, char const *argv[]) {
     }
 
 	
-	return EXIT_SUCCESS;
+	return EXIT_FAILURE; /* This line should not be executed */
 }
