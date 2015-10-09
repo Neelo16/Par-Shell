@@ -56,7 +56,7 @@ int main(int argc, char const *argv[]) {
 
 	char *argVector[ARGNUM];
 	int i; 
-    char *user = getenv("USER");
+    char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@parshell) */
 	int childCnt = 0;
 
     if (user == NULL)
