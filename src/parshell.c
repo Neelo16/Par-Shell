@@ -13,7 +13,7 @@ void exitShell(int childCnt) {
     int *pidArray = (int*) malloc(sizeof(int)*childCnt); /* saves children pid for exiting the shell */
     int *statusArray = (int*) malloc(sizeof(int)*childCnt); /* same as above for the status */
 
-    if (childCnt != 0 && (pidArray == NULL || statusArray == NULL)) /* checks errors in mallocs (there has to be children) */
+    if (childCnt != 0 && (pidArray == NULL || statusArray == NULL)) /* checks errors in mallocs (if there are any children) */
         perror("Error allocating memory");
 
     else {
