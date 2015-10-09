@@ -19,11 +19,9 @@ void exitShell(int childCnt) {
     else {
         for (i = 0; i < childCnt; i++) {
             pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
-            if (pidArray[i] == -1) {
+            if (pidArray[i] == -1)
                 perror("Error in wait");
-                continue;
-            }
-            if (!WIFEXITED(statusArray[i])) /* checks if child process terminated properly */
+            else if (!WIFEXITED(statusArray[i])) /* checks if child process terminated properly */
                 fprintf(stderr, "Error ocurred in child process\n");
         }
         for (i = 0; i < childCnt; i++)
