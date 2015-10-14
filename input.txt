@@ -8,3 +8,4 @@ fibonacci 15000
 
 
 exit 2
+fibonacci 10
