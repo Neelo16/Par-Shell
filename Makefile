@@ -15,7 +15,7 @@ $(TARGET): $(OBJS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(EXT) $(INCDIR)/%.h
 	@mkdir -p $(BUILDDIR)
-	gcc $(CFLAGS) -I $(INCDIR) -c -o $@ $<
+	$(CC) $(CFLAGS) -I $(INCDIR) -c -o $@ $<
 
 clean:
 	@echo Cleaning...
