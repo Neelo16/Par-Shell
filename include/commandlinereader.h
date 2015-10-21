@@ -1,5 +1,5 @@
 /*
-// Command line reader (header file), version 2
+// Command line reader (header file), version 3
 // Sistemas Operativos, DEI/IST/ULisboa 2015-16
 */
 
@@ -17,11 +17,13 @@ Arguments:
  as many entries as 'vectorSize'
  'vectorSize' is the size of the above vector. A vector of size N allows up to 
  N-1 arguments to be read; the entry after the last argument is set to NULL.
+ 'buffer' is a buffer with 'buffersize' bytes, which will be 
+ used to hold the strings of each argument.  
 
 Return value:
  The number of arguments that were read, or -1 if some error occurred.
 */
 
-int readLineArguments(char **argVector, int vectorSize);
+int readLineArguments(char **argVector, int vectorSize, char *buffer, int buffersize);
 
 #endif
