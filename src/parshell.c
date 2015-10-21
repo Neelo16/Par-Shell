@@ -3,6 +3,8 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <pthread.h>
 #include "parshell.h"
 #include "commandlinereader.h"
 
@@ -13,7 +15,7 @@ void *monitorChildren(void *arg){
 	int status;
 	int pid;
 	while(1) {
-		sem_wait(&(data->sem));				
+		sem_wait(&data->sem);				
 		pthread_mutex_lock(&data->mutex);
 		if(data->childCnt == 0 && data->exited){
 			pthread_mutex_unlock(&data->mutex);
@@ -93,18 +95,20 @@ int main(int argc, char const *argv[]) {
         if (numArgs < 0)
         {
             fprintf(stderr, "Error reading arguments");
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
         else if (numArgs == 0)
             continue;
         if (!strcmp("exit", argVector[0])) {
+            pthread_mutex_lock(&data->mutex);
             data->exited = 1;
+            pthread_mutex_unlock(&data->mutex);
             sem_post(&data->sem);
-            pthread_join(monitorThread, NULL);
+            if (pthread_join(monitorThread, NULL))
+                fprintf(stderr, "Error waiting for monitoring thread");
             lst_print(data->pidList);
-            lst_destroy(data->pidList);
-            sem_destroy(&data->sem);
-            pthread_mutex_destroy(&data->mutex);
+            if (pthread_mutex_destroy(&data->mutex))
+                fprintf(stderr, "Error destroying mutex\n", );
             free(data);
             return EXIT_SUCCESS;
         }
