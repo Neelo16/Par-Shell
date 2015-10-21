@@ -62,13 +62,25 @@ int main(int argc, char const *argv[]) {
 	char *argVector[ARGNUM];
 	int i; 
     char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
-	int childCnt = 0;
+    sharedData_t shared = malloc(sizeof(struct sharedData));
+    pthread_t monitorThread;
+
+    if (shared == NULL) {
+        perror("Error allocating space for shared variables in main");
+        return EXIT_FAILURE;
+    }
 
     if (user == NULL)
         user = "user";
 
 	for(i = 0; i < ARGNUM; i++)
 		argVector[i] = NULL;
+
+    shared->childCnt = 0;
+    pthread_mutex_init(&(shared->mutex), NULL);
+    shared->pidList = lst_new();
+
+    pthread_create(&monitorThread, NULL, /* FIXME */, (void*) shared);
 
     while (1) {
         int numArgs;

@@ -7,13 +7,13 @@
 
 #define ARGNUM 7
 
-typedef struct
+typedef struct sharedData
 {
    int childCnt;
    pthread_mutex_t mutex;
    sem_t sem;
    list_t pidList;
-}* sharedData;
+}* sharedData_t;
 
 void exitShell(int childCnt);
 int createProcess(char *argVector[]);
