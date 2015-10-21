@@ -49,11 +49,11 @@ void insert_new_process(list_t *list, int pid, time_t starttime)
 void update_terminated_process(list_t *list, int pid, time_t endtime)
 {
 	lst_iitem_t* item;
-	if (!list) return;
+	if (list == NULL) return;
 	item = list->first;
 	while (item != NULL && item->pid != pid)
 		item = item->next;
-	if (item)
+	if (item != NULL)
 		item->endtime = endtime;
 }
 
