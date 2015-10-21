@@ -32,6 +32,11 @@ void exitShell(int childCnt) {
     free(statusArray);
 }
 
+void *monitorChildren(void *data){
+
+}
+
+
 int createProcess(char *argVector[]) {
     /* Returns 1 if sucessful */
     int pid = fork();
