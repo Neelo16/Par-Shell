@@ -10,6 +10,7 @@
 typedef struct sharedData
 {
    int childCnt;
+   int exited;
    pthread_mutex_t mutex;
    sem_t sem;
    list_t pidList;

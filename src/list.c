@@ -41,20 +41,23 @@ void insert_new_process(list_t *list, int pid, time_t starttime)
 	item->pid = pid;
 	item->starttime = starttime;
 	item->endtime = 0;
+	item->status = 0;
 	item->next = list->first;
 	list->first = item;
 }
 
 
-void update_terminated_process(list_t *list, int pid, time_t endtime)
+void update_terminated_process(list_t *list, int pid, time_t endtime, int status)
 {
 	lst_iitem_t* item;
 	if (list == NULL) return;
 	item = list->first;
 	while (item != NULL && item->pid != pid)
 		item = item->next;
-	if (item != NULL)
+	if (item != NULL) {
 		item->endtime = endtime;
+		item->status = status;
+	}
 }
 
 

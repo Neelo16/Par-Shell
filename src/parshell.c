@@ -9,31 +9,40 @@
 
 void exitShell(int childCnt) {
 
-    int i;
-    int *pidArray = (int*) malloc(sizeof(int)*childCnt); /* saves children pid for exiting the shell */
-    int *statusArray = (int*) malloc(sizeof(int)*childCnt); /* same as above for the status */
 
-    if (childCnt != 0 && (pidArray == NULL || statusArray == NULL)) /* checks errors in mallocs (if there are any children) */
-        perror("Error allocating memory");
-
-    else {
-        for (i = 0; i < childCnt; i++) {
-            pidArray[i] = wait(statusArray + i); /* Address of the entry i of status array*/
-            if (pidArray[i] == -1)
-                perror("Error in wait");
-        }
-        for (i = 0; i < childCnt; i++)
+       
+       /* for (i = 0; i < childCnt; i++)
             if (pidArray[i] != -1 && WIFEXITED(statusArray[i]))
                 printf("%d %d\n", pidArray[i], WEXITSTATUS(statusArray[i]));
             else
-                printf("%d did not terminate successfully\n", pidArray[i]);
-    }
-    free(pidArray);
-    free(statusArray);
+                printf("%d did not terminate successfully\n", pidArray[i]);*/
 }
 
 void *monitorChildren(void *data){
+	sharedData_t data = (sharedData_t) data;
+	time_t endtime;
+	int status;
+	int pid;
+	while(1) {
+		sem_wait(&(data->sem));				
+		pthread_mutex_lock(&data->mutex);
+		if(data->childCnt == 0 && data->exited){
+			pthread_mutex_unlock(&data->mutex);
+			pthread_exit(NULL);
+		}
+		pthread_mutex_unlock(&data->mutex);
+		pid = wait(&status);
+		if (pid == -1)
+                perror("Error in wait");
+		endtime = time(NULL);
+		if(endtime == (time_t) -1) 
+			fprintf(stderr, "Error on getting child endtime\n");
 
+		pthread_mutex_lock(&data->mutex);
+		update_terminated_process(data->pidList, pid, endtime, status);
+		data->childCnt--;
+		pthread_mutex_unlock(&data->mutex);
+	}
 }
 
 
@@ -77,10 +86,12 @@ int main(int argc, char const *argv[]) {
 		argVector[i] = NULL;
 
     shared->childCnt = 0;
+	shared->exited = 0;
     pthread_mutex_init(&(shared->mutex), NULL);
+	sem_init(&shared->sem,0,0);
     shared->pidList = lst_new();
 
-    pthread_create(&monitorThread, NULL, /* FIXME */, (void*) shared);
+    pthread_create(&monitorThread, NULL, monitorChildren, (void*) shared);
 
     while (1) {
         int numArgs;
