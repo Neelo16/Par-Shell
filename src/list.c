@@ -80,7 +80,7 @@ void lst_print(list_t *list)
 			if (WIFEXITED(status))
 				printf("EXIT STATUS: %d\n", WEXITSTATUS(status));
 			else
-				printf("EXIT STATUS: N/A\n");
+				printf("EXIT STATUS: N/A (improper termination)\n");
 		}
 
 		item = item->next;
