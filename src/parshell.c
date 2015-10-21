@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 #include <string.h>
 #include <unistd.h>
-#include <semaphore.h>
 #include <pthread.h>
+#include <sys/wait.h>
+#include <semaphore.h>
 #include "parshell.h"
 #include "commandlinereader.h"
 
@@ -108,7 +108,7 @@ int main(int argc, char const *argv[]) {
                 fprintf(stderr, "Error waiting for monitoring thread");
             lst_print(data->pidList);
             if (pthread_mutex_destroy(&data->mutex))
-                fprintf(stderr, "Error destroying mutex\n", );
+                fprintf(stderr, "Error destroying mutex\n");
             free(data);
             return EXIT_SUCCESS;
         }
