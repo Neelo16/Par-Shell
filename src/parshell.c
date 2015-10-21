@@ -89,7 +89,7 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         int numArgs;
-        if (isatty(fileno(stdin))) /* checks if input source is a terminal or pipe/file*/
+        if (isatty(fileno(stdin))) /* Checks if input source is a terminal or pipe/file*/
             printf("%s@par-shell$ ", user);
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0)
@@ -103,12 +103,13 @@ int main(int argc, char const *argv[]) {
             pthread_mutex_lock(&data->mutex);
             data->exited = 1;
             pthread_mutex_unlock(&data->mutex);
-            sem_post(&data->sem);
+            sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
             if (pthread_join(monitorThread, NULL))
                 fprintf(stderr, "Error waiting for monitoring thread");
             lst_print(data->pidList);
             if (pthread_mutex_destroy(&data->mutex))
                 fprintf(stderr, "Error destroying mutex\n");
+            lst_destroy(data->pidList);
             free(data);
             return EXIT_SUCCESS;
         }
