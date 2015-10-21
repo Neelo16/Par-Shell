@@ -65,12 +65,23 @@ void lst_print(list_t *list)
 {
 	lst_iitem_t *item;
 
-	printf("Process list with start and end time:\n");
 	item = list->first;
 	while (item != NULL){
-		printf("%d\t%s", item->pid, ctime(&(item->starttime)));
-		printf("\t%s", ctime(&(item->endtime)));
+		time_t executionTime = item->endtime - item->starttime;
+		int status = item->status;
+		int pid = item->pid;
+		if (pid != -1)
+		{
+			if (WIFEXITED(status))
+				printf("PID: %d\tEXIT STATUS:%d\t", pid, WEXITSTATUS(status));
+			else
+				printf("PID: %d\t did not terminate successfully\t");
+			if (executionTime < 0)
+				puts("TIME: Undetermined");
+			else
+				printf("TIME: %d\n", executionTime);
+		}
+
 		item = item->next;
 	}
-	printf("-- end of list.\n");
 }

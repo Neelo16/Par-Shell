@@ -16,8 +16,7 @@ typedef struct sharedData
    list_t pidList;
 }* sharedData_t;
 
-void exitShell(int childCnt);
-int createProcess(char *argVector[]);
+int createProcess(char *argVector[], list_t pidList);
 void *monitorChildren(void *data);
 
 #endif

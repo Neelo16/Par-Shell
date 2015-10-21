@@ -7,17 +7,6 @@
 #include "commandlinereader.h"
 
 
-void exitShell(int childCnt) {
-
-
-       
-       /* for (i = 0; i < childCnt; i++)
-            if (pidArray[i] != -1 && WIFEXITED(statusArray[i]))
-                printf("%d %d\n", pidArray[i], WEXITSTATUS(statusArray[i]));
-            else
-                printf("%d did not terminate successfully\n", pidArray[i]);*/
-}
-
 void *monitorChildren(void *data){
 	sharedData_t data = (sharedData_t) data;
 	time_t endtime;
@@ -46,7 +35,7 @@ void *monitorChildren(void *data){
 }
 
 
-int createProcess(char *argVector[]) {
+int createProcess(char *argVector[], list_t pidList) {
     /* Returns 1 if sucessful */
     int pid = fork();
     if (pid < 0) {
@@ -60,8 +49,10 @@ int createProcess(char *argVector[]) {
     }
     else {
         int i;
+        time_t starttime = time(NULL);
         for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
+        insert_new_process(list_t, pid, starttime);
         return 1;           
     }
 }
@@ -87,7 +78,7 @@ int main(int argc, char const *argv[]) {
 
     shared->childCnt = 0;
 	shared->exited = 0;
-    pthread_mutex_init(&(shared->mutex), NULL);
+    pthread_mutex_init(&shared->mutex, NULL);
 	sem_init(&shared->sem,0,0);
     shared->pidList = lst_new();
 
@@ -106,12 +97,24 @@ int main(int argc, char const *argv[]) {
         else if (numArgs == 0)
             continue;
         if (!strcmp("exit", argVector[0])) {
-            exitShell(childCnt);
+            data->exited = 1;
+            sem_post(&data->sem);
+            pthread_join(monitorThread, NULL);
+            lst_print(data->pidList);
+            lst_destroy(data->pidList);
+            sem_destroy(&data->sem);
+            pthread_mutex_destroy(&data->mutex);
+            free(data);
             return EXIT_SUCCESS;
         }
-        else
-            if(createProcess(argVector))
-                childCnt++;
+        else {
+            pthread_mutex_lock(&data->mutex)
+            if(createProcess(argVector, data->list)) {
+                data->childCnt++;
+                sem_post(&data->sem)
+            }
+            pthread_mutex_unlock(&data->mutex);
+        }
     }
 
 	
