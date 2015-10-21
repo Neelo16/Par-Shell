@@ -67,19 +67,20 @@ void lst_print(list_t *list)
 
 	item = list->first;
 	while (item != NULL){
-		time_t executionTime = item->endtime - item->starttime;
+		double executionTime = difftime(item->endtime, item->starttime);
 		int status = item->status;
 		int pid = item->pid;
 		if (pid != -1)
 		{
-			if (WIFEXITED(status))
-				printf("PID: %d\tEXIT STATUS:%d\t", pid, WEXITSTATUS(status));
-			else
-				printf("PID: %d\t did not terminate successfully\t");
+			printf("PID: %d\t", pid);
 			if (executionTime < 0)
-				puts("TIME: Undetermined");
+				puts("TIME: Undetermined\t");
 			else
-				printf("TIME: %d\n", executionTime);
+				printf("TIME: %03.0f seconds\t", executionTime);
+			if (WIFEXITED(status))
+				printf("EXIT STATUS: %d\n", WEXITSTATUS(status));
+			else
+				printf("EXIT STATUS: N/A\n");
 		}
 
 		item = item->next;

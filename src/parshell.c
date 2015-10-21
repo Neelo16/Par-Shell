@@ -7,8 +7,8 @@
 #include "commandlinereader.h"
 
 
-void *monitorChildren(void *data){
-	sharedData_t data = (sharedData_t) data;
+void *monitorChildren(void *arg){
+	sharedData_t data = (sharedData_t) arg;
 	time_t endtime;
 	int status;
 	int pid;
@@ -35,7 +35,7 @@ void *monitorChildren(void *data){
 }
 
 
-int createProcess(char *argVector[], list_t pidList) {
+int createProcess(char *argVector[], list_t *pidList) {
     /* Returns 1 if sucessful */
     int pid = fork();
     if (pid < 0) {
@@ -52,7 +52,7 @@ int createProcess(char *argVector[], list_t pidList) {
         time_t starttime = time(NULL);
         for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
-        insert_new_process(list_t, pid, starttime);
+        insert_new_process(pidList, pid, starttime);
         return 1;           
     }
 }
@@ -62,10 +62,10 @@ int main(int argc, char const *argv[]) {
 	char *argVector[ARGNUM];
 	int i; 
     char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
-    sharedData_t shared = malloc(sizeof(struct sharedData));
+    sharedData_t data = malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
 
-    if (shared == NULL) {
+    if (data == NULL) {
         perror("Error allocating space for shared variables in main");
         return EXIT_FAILURE;
     }
@@ -76,13 +76,13 @@ int main(int argc, char const *argv[]) {
 	for(i = 0; i < ARGNUM; i++)
 		argVector[i] = NULL;
 
-    shared->childCnt = 0;
-	shared->exited = 0;
-    pthread_mutex_init(&shared->mutex, NULL);
-	sem_init(&shared->sem,0,0);
-    shared->pidList = lst_new();
+    data->childCnt = 0;
+	data->exited = 0;
+    pthread_mutex_init(&data->mutex, NULL);
+	sem_init(&data->sem,0,0);
+    data->pidList = lst_new();
 
-    pthread_create(&monitorThread, NULL, monitorChildren, (void*) shared);
+    pthread_create(&monitorThread, NULL, monitorChildren, (void*) data);
 
     while (1) {
         int numArgs;
@@ -108,10 +108,10 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-            pthread_mutex_lock(&data->mutex)
-            if(createProcess(argVector, data->list)) {
+            pthread_mutex_lock(&data->mutex);
+            if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
-                sem_post(&data->sem)
+                sem_post(&data->sem);
             }
             pthread_mutex_unlock(&data->mutex);
         }

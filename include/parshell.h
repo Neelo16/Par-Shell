@@ -13,10 +13,10 @@ typedef struct sharedData
    int exited;
    pthread_mutex_t mutex;
    sem_t sem;
-   list_t pidList;
+   list_t *pidList;
 }* sharedData_t;
 
-int createProcess(char *argVector[], list_t pidList);
+int createProcess(char *argVector[], list_t *pidList);
 void *monitorChildren(void *data);
 
 #endif
