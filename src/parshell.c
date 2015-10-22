@@ -59,11 +59,34 @@ int createProcess(char *argVector[], list_t *pidList) {
     }
 }
 
+
+void exitShell(sharedData_t data,pthread_t monitorThread){
+    pthread_mutex_lock(&data->mutex);
+    data->exited = 1;
+    pthread_mutex_unlock(&data->mutex);
+
+    sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
+
+    if (pthread_join(monitorThread, NULL))
+        fprintf(stderr, "Error waiting for monitoring thread");
+    lst_print(data->pidList);
+
+	if (pthread_mutex_destroy(&data->mutex))
+		fprintf(stderr, "Error destroying mutex\n");
+
+	if (sem_destroy(&data->sem))
+		perror("Error destroying semaphore");
+
+	lst_destroy(data->pidList);
+	free(data);
+}
+
+
 int main(int argc, char const *argv[]) {
 
 	int i;
+	char buffer[BUFFER_SIZE];
 	char *argVector[ARGNUM]; 
-    char buffer[BUFFER_SIZE];
     char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
     sharedData_t data = malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
@@ -95,24 +118,13 @@ int main(int argc, char const *argv[]) {
         if (numArgs < 0)
         {
             fprintf(stderr, "Error reading arguments");
+            exitShell(data,monitorThread);
             return EXIT_FAILURE;
         }
         else if (numArgs == 0)
             continue;
         if (!strcmp("exit", argVector[0])) {
-            pthread_mutex_lock(&data->mutex);
-            data->exited = 1;
-            pthread_mutex_unlock(&data->mutex);
-            sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
-            if (pthread_join(monitorThread, NULL))
-                fprintf(stderr, "Error waiting for monitoring thread");
-            lst_print(data->pidList);
-            if (pthread_mutex_destroy(&data->mutex))
-                fprintf(stderr, "Error destroying mutex\n");
-            if (sem_destroy(&data->sem))
-                perror("Error destroying semaphore");
-            lst_destroy(data->pidList);
-            free(data);
+            exitShell(data,monitorThread);
             return EXIT_SUCCESS;
         }
         else {
