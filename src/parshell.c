@@ -10,30 +10,30 @@
 
 
 void *monitorChildren(void *arg){
-	sharedData_t data = (sharedData_t) arg;
-	time_t endtime;
-	int status;
-	int pid;
-	while(1) {
-		sem_wait(&data->sem);				
-		pthread_mutex_lock(&data->mutex);
-		if(data->childCnt == 0 && data->exited){
-			pthread_mutex_unlock(&data->mutex);
-			pthread_exit(NULL);
-		}
-		pthread_mutex_unlock(&data->mutex);
-		pid = wait(&status);
-		if (pid == -1)
+    sharedData_t data = (sharedData_t) arg;
+    time_t endtime;
+    int status;
+    int pid;
+    while(1) {
+        sem_wait(&data->sem);               
+        pthread_mutex_lock(&data->mutex);
+        if(data->childCnt == 0 && data->exited){
+            pthread_mutex_unlock(&data->mutex);
+            pthread_exit(NULL);
+        }
+        pthread_mutex_unlock(&data->mutex);
+        pid = wait(&status);
+        if (pid == -1)
                 perror("Error in wait");
-		endtime = time(NULL);
-		if(endtime == (time_t) -1) 
-			fprintf(stderr, "Error on getting child endtime\n");
+        endtime = time(NULL);
+        if(endtime == (time_t) -1) 
+            fprintf(stderr, "Error on getting child endtime\n");
 
-		pthread_mutex_lock(&data->mutex);
-		update_terminated_process(data->pidList, pid, endtime, status);
-		data->childCnt--;
-		pthread_mutex_unlock(&data->mutex);
-	}
+        pthread_mutex_lock(&data->mutex);
+        update_terminated_process(data->pidList, pid, endtime, status);
+        data->childCnt--;
+        pthread_mutex_unlock(&data->mutex);
+    }
 }
 
 
@@ -71,22 +71,22 @@ void exitShell(sharedData_t data,pthread_t monitorThread){
         fprintf(stderr, "Error waiting for monitoring thread");
     lst_print(data->pidList);
 
-	if (pthread_mutex_destroy(&data->mutex))
-		fprintf(stderr, "Error destroying mutex\n");
+    if (pthread_mutex_destroy(&data->mutex))
+        fprintf(stderr, "Error destroying mutex\n");
 
-	if (sem_destroy(&data->sem))
-		perror("Error destroying semaphore");
+    if (sem_destroy(&data->sem))
+        perror("Error destroying semaphore");
 
-	lst_destroy(data->pidList);
-	free(data);
+    lst_destroy(data->pidList);
+    free(data);
 }
 
 
 int main(int argc, char const *argv[]) {
 
-	int i;
-	char buffer[BUFFER_SIZE];
-	char *argVector[ARGNUM]; 
+    int i;
+    char buffer[BUFFER_SIZE];
+    char *argVector[ARGNUM]; 
     char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
     sharedData_t data = malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
@@ -99,13 +99,13 @@ int main(int argc, char const *argv[]) {
     if (user == NULL)
         user = "user";
 
-	for(i = 0; i < ARGNUM; i++)
-		argVector[i] = NULL;
+    for(i = 0; i < ARGNUM; i++)
+        argVector[i] = NULL;
 
     data->childCnt = 0;
-	data->exited = 0;
+    data->exited = 0;
     pthread_mutex_init(&data->mutex, NULL);
-	sem_init(&data->sem,0,0);
+    sem_init(&data->sem,0,0);
     data->pidList = lst_new();
 
     pthread_create(&monitorThread, NULL, monitorChildren, (void*) data);
@@ -137,6 +137,6 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-	
-	return EXIT_FAILURE; /* This line should not be executed */
+    
+    return EXIT_FAILURE; /* This line should not be executed */
 }
