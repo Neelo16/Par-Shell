@@ -89,7 +89,7 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         int numArgs;
-        if (isatty(fileno(stdin))) /* Checks if input source is a terminal or pipe/file*/
+        if (isatty(fileno(stdin))) /* Checks if input source is a terminal or pipe/file */
             printf("%s@par-shell$ ", user);
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0)
