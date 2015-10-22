@@ -109,6 +109,8 @@ int main(int argc, char const *argv[]) {
             lst_print(data->pidList);
             if (pthread_mutex_destroy(&data->mutex))
                 fprintf(stderr, "Error destroying mutex\n");
+            if (sem_destroy(&data->sem))
+                perror("Error destroying semaphore");
             lst_destroy(data->pidList);
             free(data);
             return EXIT_SUCCESS;
