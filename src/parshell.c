@@ -61,8 +61,8 @@ int createProcess(char *argVector[], list_t *pidList) {
 
 int main(int argc, char const *argv[]) {
 
-	char *argVector[ARGNUM];
-	int i; 
+	int i;
+	char *argVector[ARGNUM]; 
     char buffer[BUFFER_SIZE];
     char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
     sharedData_t data = malloc(sizeof(struct sharedData));
