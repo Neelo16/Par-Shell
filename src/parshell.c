@@ -25,7 +25,7 @@ void *monitorChildren(void *arg){
         pthread_mutex_unlock(&data->mutex);
         pid = wait(&status);
         if (pid == -1)
-                perror("Error in wait");
+            perror("Error in wait");
         endtime = time(NULL);
         if(endtime == (time_t) -1) 
             fprintf(stderr, "Error getting child endtime\n");
@@ -60,7 +60,7 @@ int createProcess(char *argVector[], list_t *pidList) {
 }
 
 
-void exitShell(sharedData_t data,pthread_t monitorThread){
+void exitShell(sharedData_t data,pthread_t monitorThread) {
     pthread_mutex_lock(&data->mutex);
     data->exited = 1;
     pthread_mutex_unlock(&data->mutex);
@@ -111,7 +111,8 @@ int main(int argc, char const *argv[]) {
 
     pthread_mutex_init(&data->mutex, NULL);
 
-    if (sem_init(&data->sem,0,0)) { /* Locks monitor thread if there are no running children */
+    if (sem_init(&data->sem, 0, 0)) { 
+    /* Semaphore used to lock monitor thread while there are no running children */
         perror("Failed to initialize semaphore");
         return EXIT_FAILURE;
     }
@@ -132,13 +133,13 @@ int main(int argc, char const *argv[]) {
         if (numArgs < 0)
         {
             fprintf(stderr, "Error reading arguments\n");
-            exitShell(data,monitorThread);
+            exitShell(data, monitorThread);
             return EXIT_FAILURE;
         }
         else if (numArgs == 0)
             continue;
         if (!strcmp("exit", argVector[0])) {
-            exitShell(data,monitorThread);
+            exitShell(data, monitorThread);
             return EXIT_SUCCESS;
         }
         else {
