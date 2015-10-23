@@ -17,7 +17,15 @@ typedef struct sharedData
    list_t *pidList;
 }* sharedData_t;
 
+/* Cleans up to exit the shell */
+void exitShell(sharedData_t data,pthread_t monitorThread);
+
+/* Creates a new process and stores PID and start time in pidList
+   Returns 1 on success and 0 on failure */
 int createProcess(char *argVector[], list_t *pidList);
-void *monitorChildren(void *data);
+
+/* Function that is run on a separate thread to monitor end times of
+   forked processes */
+void *monitorChildren(void *arg);
 
 #endif
