@@ -6,7 +6,7 @@
 #include "list.h"
 
 #define ARGNUM 7
-#define BUFFER_SIZE 80
+#define BUFFER_SIZE 128
 
 typedef struct sharedData
 {
