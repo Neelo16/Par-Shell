@@ -50,10 +50,7 @@ int createProcess(char *argVector[], list_t *pidList) {
         exit(EXIT_FAILURE);
     }
     else {
-        int i;
         time_t starttime = time(NULL);
-        for(i = 0; i < ARGNUM; i++) 
-            argVector[i] = NULL;    
         if (!insert_new_process(pidList, pid, starttime))
             fprintf(stderr, "Failed to save info for process %d"
                             ", will not display process info on exit\n", pid);
@@ -101,12 +98,15 @@ int main(int argc, char const *argv[]) {
     if (user == NULL)
         user = "user";
 
-    for(i = 0; i < ARGNUM; i++)
-        argVector[i] = NULL;
-
     data->pidList = lst_new();
+    if (data->pidList == NULL) {
+        fprintf(stderr, "Failed to create list to save processes.\n");
+        return EXIT_FAILURE;
+    }
+
     data->childCnt = 0;
     data->exited = 0;
+
     pthread_mutex_init(&data->mutex, NULL);
 
     if (sem_init(&data->sem,0,0)) {
@@ -114,15 +114,13 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (data->pidList == NULL) {
-        fprintf(stderr, "Failed to create list to save processes.\n");
-        return EXIT_FAILURE;
-    }
-
     if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
         fprintf(stderr, "Failed to create thread.\n");
         return EXIT_FAILURE;
     }
+
+    for(i = 0; i < ARGNUM; i++)
+        argVector[i] = NULL;
 
     while (1) {
         int numArgs;
