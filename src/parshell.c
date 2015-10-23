@@ -107,8 +107,16 @@ int main(int argc, char const *argv[]) {
     data->childCnt = 0;
     data->exited = 0;
     pthread_mutex_init(&data->mutex, NULL);
-    sem_init(&data->sem,0,0);
-    data->pidList = lst_new();
+
+    if (sem_init(&data->sem,0,0)) {
+        perror("Failed to initialize semaphore");
+        return EXIT_FAILURE;
+    }
+
+    if (data->pidList = lst_new() == NULL) {
+        fprintf("Failed to create list to save processes.");
+        return EXIT_FAILURE;
+    }
 
     if(data->pidList == NULL){
     	perror("Error allocating space for pid list in main");
