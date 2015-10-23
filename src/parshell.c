@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <sys/wait.h>
 #include <semaphore.h>
+#include "list.h"
 #include "parshell.h"
 #include "commandlinereader.h"
 
