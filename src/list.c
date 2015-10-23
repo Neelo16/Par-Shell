@@ -12,10 +12,11 @@
 
 list_t* lst_new()
 {
-   list_t *list;
-   list = (list_t*) malloc(sizeof(list_t));
-   list->first = NULL;
-   return list;
+	list_t *list;
+	list = (list_t*) malloc(sizeof(list_t));
+	if (list != NULL)
+		list->first = NULL;
+	return list;
 }
 
 
@@ -33,17 +34,20 @@ void lst_destroy(list_t *list)
 }
 
 
-void insert_new_process(list_t *list, int pid, time_t starttime)
+int insert_new_process(list_t *list, int pid, time_t starttime)
 {
 	lst_iitem_t *item;
-
 	item = (lst_iitem_t *) malloc (sizeof(lst_iitem_t));
-	item->pid = pid;
-	item->starttime = starttime;
-	item->endtime = 0;
-	item->status = 0;
-	item->next = list->first;
-	list->first = item;
+	if (item != NULL){
+		item->pid = pid;
+		item->starttime = starttime;
+		item->endtime = 0;
+		item->status = 0;
+		item->next = list->first;
+		list->first = item;
+		return 1;
+	}
+	return 0; /* If it failed to alocate memory to the new item */
 }
 
 

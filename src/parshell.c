@@ -54,8 +54,7 @@ int createProcess(char *argVector[], list_t *pidList) {
         time_t starttime = time(NULL);
         for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
-        insert_new_process(pidList, pid, starttime);
-        return 1;           
+        return insert_new_process(pidList, pid, starttime);          
     }
 }
 
@@ -107,6 +106,11 @@ int main(int argc, char const *argv[]) {
     pthread_mutex_init(&data->mutex, NULL);
     sem_init(&data->sem,0,0);
     data->pidList = lst_new();
+
+    if(data->pidList == NULL){
+    	perror("Error allocating space for pid list in main");
+    	return EXIT_FAILURE;
+    }
 
     pthread_create(&monitorThread, NULL, monitorChildren, (void*) data);
 
