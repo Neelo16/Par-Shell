@@ -104,6 +104,7 @@ int main(int argc, char const *argv[]) {
     for(i = 0; i < ARGNUM; i++)
         argVector[i] = NULL;
 
+    data->pidList = lst_new();
     data->childCnt = 0;
     data->exited = 0;
     pthread_mutex_init(&data->mutex, NULL);
@@ -113,14 +114,9 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (data->pidList = lst_new() == NULL) {
+    if (data->pidList == NULL) {
         fprintf(stderr, "Failed to create list to save processes.");
         return EXIT_FAILURE;
-    }
-
-    if(data->pidList == NULL){
-    	fprintf(stderr, "Error allocating space for pid list in main");
-    	return EXIT_FAILURE;
     }
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
