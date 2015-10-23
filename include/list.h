@@ -2,12 +2,7 @@
  * list.h - definitions and declarations of the integer list 
  */
 
-
-#include <stdlib.h>
-#include <stdio.h>
 #include <time.h>
-
-
 
 /* lst_iitem - each element of the list points to the next element */
 typedef struct lst_iitem {
