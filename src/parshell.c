@@ -28,7 +28,7 @@ void *monitorChildren(void *arg){
                 perror("Error in wait");
         endtime = time(NULL);
         if(endtime == (time_t) -1) 
-            fprintf(stderr, "Error on getting child endtime\n");
+            fprintf(stderr, "Error getting child endtime\n");
 
         pthread_mutex_lock(&data->mutex);
         update_terminated_process(data->pidList, pid, endtime, status);
@@ -107,11 +107,11 @@ int main(int argc, char const *argv[]) {
 
     data->childCnt = 0;
     data->exited = 0; 
-    /* exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
+    /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
 
     pthread_mutex_init(&data->mutex, NULL);
 
-    if (sem_init(&data->sem,0,0)) { /* Locks monitor thread if there is no running childs to wait */
+    if (sem_init(&data->sem,0,0)) { /* Locks monitor thread if there are no running children */
         perror("Failed to initialize semaphore");
         return EXIT_FAILURE;
     }
