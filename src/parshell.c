@@ -70,7 +70,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread){
     sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
 
     if (pthread_join(monitorThread, NULL))
-        fprintf(stderr, "Error waiting for monitoring thread");
+        fprintf(stderr, "Error waiting for monitoring thread\n");
     lst_print(data->pidList);
 
     if (pthread_mutex_destroy(&data->mutex))
@@ -115,7 +115,7 @@ int main(int argc, char const *argv[]) {
     }
 
     if (data->pidList == NULL) {
-        fprintf(stderr, "Failed to create list to save processes.");
+        fprintf(stderr, "Failed to create list to save processes.\n");
         return EXIT_FAILURE;
     }
 
