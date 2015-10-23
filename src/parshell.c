@@ -54,7 +54,10 @@ int createProcess(char *argVector[], list_t *pidList) {
         time_t starttime = time(NULL);
         for(i = 0; i < ARGNUM; i++) 
             argVector[i] = NULL;    
-        return insert_new_process(pidList, pid, starttime);          
+        if (!insert_new_process(pidList, pid, starttime))
+            fprintf(stderr, "Failed to save info for process %d"
+                            ", will not display process info on exit\n", pid);
+        return 1;
     }
 }
 
