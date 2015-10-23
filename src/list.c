@@ -47,8 +47,6 @@ int insert_new_process(list_t *list, int pid, time_t starttime)
         list->first = item;
         return 1;
     }
-    else
-        perror("Error inserting process in list");
     return 0; /* If it failed to alocate memory to the new item */
 }
 
