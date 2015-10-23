@@ -115,7 +115,10 @@ int main(int argc, char const *argv[]) {
     	return EXIT_FAILURE;
     }
 
-    pthread_create(&monitorThread, NULL, monitorChildren, (void*) data);
+    if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
+        fprintf(stderr, "Failed to create thread.\n");
+        return EXIT_FAILURE;
+    }
 
     while (1) {
         int numArgs;
