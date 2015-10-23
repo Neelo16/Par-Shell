@@ -45,7 +45,7 @@ int createProcess(char *argVector[], list_t *pidList) {
         return 0;
     }
     else if (pid == 0) {
-        execv(argVector[0], argVector);
+        execvp(argVector[0], argVector);
         perror("Error executing process");
         exit(EXIT_FAILURE);
     }
