@@ -114,12 +114,12 @@ int main(int argc, char const *argv[]) {
     }
 
     if (data->pidList = lst_new() == NULL) {
-        fprintf("Failed to create list to save processes.");
+        fprintf(stderr, "Failed to create list to save processes.");
         return EXIT_FAILURE;
     }
 
     if(data->pidList == NULL){
-    	perror("Error allocating space for pid list in main");
+    	fprintf(stderr, "Error allocating space for pid list in main");
     	return EXIT_FAILURE;
     }
 
