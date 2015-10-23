@@ -1,6 +1,8 @@
 /*
  * list.h - definitions and declarations of the integer list 
  */
+#ifndef __LIST_H__
+#define __LIST_H__
 
 #include <time.h>
 
@@ -35,3 +37,5 @@ void update_terminated_process(list_t *list, int pid, time_t endtime, int status
 
 /* lst_print - print the content of list 'list' to standard output */
 void lst_print(list_t *list);
+
+#endif
