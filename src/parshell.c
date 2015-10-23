@@ -131,7 +131,7 @@ int main(int argc, char const *argv[]) {
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0)
         {
-            fprintf(stderr, "Error reading arguments");
+            fprintf(stderr, "Error reading arguments\n");
             exitShell(data,monitorThread);
             return EXIT_FAILURE;
         }
