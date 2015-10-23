@@ -106,11 +106,12 @@ int main(int argc, char const *argv[]) {
     }
 
     data->childCnt = 0;
-    data->exited = 0;
+    data->exited = 0; 
+    /* exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
 
     pthread_mutex_init(&data->mutex, NULL);
 
-    if (sem_init(&data->sem,0,0)) {
+    if (sem_init(&data->sem,0,0)) { /* Locks monitor thread if there is no running childs to wait */
         perror("Failed to initialize semaphore");
         return EXIT_FAILURE;
     }
