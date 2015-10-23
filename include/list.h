@@ -32,7 +32,7 @@ list_t* lst_new();
 void lst_destroy(list_t *);
 
 /* insert_new_process - insert a new item with process id and its start time in list 'list'
-		returns 1 on success and 0 on failure */
+        returns 1 on success and 0 on failure */
 int insert_new_process(list_t *list, int pid, time_t starttime);
 
 /* lst_remove - remove first item of value 'value' from list 'list' */
