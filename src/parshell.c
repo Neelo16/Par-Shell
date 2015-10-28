@@ -10,6 +10,7 @@
 #include "parshell.h"
 #include "commandlinereader.h"
 
+sem_t proc_limiter;
 
 void *monitorChildren(void *arg){
     sharedData_t data = (sharedData_t) arg;
@@ -35,6 +36,7 @@ void *monitorChildren(void *arg){
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
         mutex_unlock(&data->mutex);
+        sem_post(&proc_limiter);
     }
 }
 
@@ -122,6 +124,11 @@ int main(int argc, char const *argv[]) {
 
     pthread_mutex_init(&data->mutex, NULL);
 
+    if (sem_init(&proc_limiter, 0, MAXPAR)) {
+        perror("Failed to initialize process limiting semaphore");
+        return EXIT_FAILURE;
+    }
+
     if (sem_init(&data->sem, 0, 0)) { 
     /* Semaphore used to lock monitor thread while there are no running children */
         perror("Failed to initialize semaphore");
@@ -152,7 +159,12 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
+<<<<<<< HEAD
             mutex_lock(&data->mutex);
+=======
+            sem_wait(&proc_limiter);
+            pthread_mutex_lock(&data->mutex);
+>>>>>>> cd738b60a301a345ef58e2c92a90d28ab1d0c15d
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
                 sem_post(&data->sem);

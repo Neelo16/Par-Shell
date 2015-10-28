@@ -7,6 +7,7 @@
 
 #define ARGNUM 7
 #define BUFFER_SIZE 128
+#define MAXPAR 4
 
 typedef struct sharedData
 {
