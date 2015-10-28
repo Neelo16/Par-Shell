@@ -18,7 +18,7 @@ void *monitorChildren(void *arg){
     int status;
     int pid;
     while(1) {
-        sem_wait(&data->sem);               
+        wait(&data->sem);               
         mutex_lock(&data->mutex);
         if(data->childCnt == 0 && data->exited){
             mutex_unlock(&data->mutex);
@@ -36,7 +36,7 @@ void *monitorChildren(void *arg){
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
         mutex_unlock(&data->mutex);
-        sem_post(&proc_limiter);
+        post(&proc_limiter);
     }
 }
 
@@ -68,14 +68,15 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     data->exited = 1;
     mutex_unlock(&data->mutex);
 
-    sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
+    post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
 
     if (pthread_join(monitorThread, NULL))
-        fprintf(stderr, "Error waiting for monitoring thread\n");
+        fprintf(stderr, "Error waiting for monitoring thread.\n");
+
     lst_print(data->pidList);
 
     if (pthread_mutex_destroy(&data->mutex))
-        fprintf(stderr, "Error destroying mutex\n");
+        fprintf(stderr, "Error destroying mutex.\n");
 
     if (sem_destroy(&data->sem))
         perror("Error destroying semaphore");
@@ -89,14 +90,28 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
 
 void mutex_lock(pthread_mutex_t *mutex) {
     if (pthread_mutex_lock(mutex)) {
-        perror("Error locking the mutex");
+        fprintf(stderr, "Error locking the mutex.\n");
         exit(EXIT_FAILURE);
     }
 }
 
 void mutex_unlock(pthread_mutex_t *mutex) {
     if (pthread_mutex_unlock(mutex)) {
-        perror("Error unlocking the mutex");
+        fprintf(stderr, "Error unlocking the mutex.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void wait(sem_t *sem) {
+    if (sem_wait(sem)) {
+        perror("Error waiting for semaphore");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void post(sem_t *sem) {
+    if (sem_post(sem)) {
+        perror("Error posting semaphore");
         exit(EXIT_FAILURE);
     }
 }
@@ -163,11 +178,11 @@ int main(int argc, char const *argv[]) {
         }
         else {
             mutex_lock(&data->mutex);
-            sem_wait(&proc_limiter);
-            pthread_mutex_lock(&data->mutex);
+            wait(&proc_limiter);
+            mutex_lock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
-                sem_post(&data->sem);
+                post(&data->sem);
             }
             mutex_unlock(&data->mutex);
         }
