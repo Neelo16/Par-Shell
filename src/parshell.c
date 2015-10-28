@@ -186,8 +186,6 @@ int main(int argc, char const *argv[]) {
             }
             mutexUnlock(&data->mutex);
         }
-        while (1)
-            sleep(1);
     }
     return EXIT_FAILURE; /* This line should not be executed */
 }
