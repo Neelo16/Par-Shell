@@ -27,10 +27,16 @@ void exitShell(sharedData_t data,pthread_t monitorThread);
 int createProcess(char *argVector[], list_t *pidList);
 
 /* Locks the mutex and exits if there's an error */
-void mutex_lock(pthread_mutex_t *mutex);
+void mutexLock(pthread_mutex_t *mutex);
 
 /* Unlocks the mutex and exits if there's an error */
-void mutex_unlock(pthread_mutex_t *mutex);
+void mutexUnlock(pthread_mutex_t *mutex);
+
+/* Waits for the semaphore sem and exits on error */
+void semWait(sem_t *sem);
+
+/* Post the semaphore sem and exits on error */
+void semPost(sem_t *sem);
 
 /* Function that is run on a separate thread to monitor end times of
    forked processes */
