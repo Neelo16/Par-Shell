@@ -80,6 +80,9 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (sem_destroy(&data->sem))
         perror("Error destroying semaphore");
 
+    if (sem_destroy(&proc_limiter))
+        perror("Error destroying process limiting semaphore");
+
     lst_destroy(data->pidList);
     free(data);
 }
