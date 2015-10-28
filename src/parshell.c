@@ -177,7 +177,6 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-            mutex_lock(&data->mutex);
             wait(&proc_limiter);
             mutex_lock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
