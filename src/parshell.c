@@ -18,12 +18,12 @@ void *monitorChildren(void *arg){
     int pid;
     while(1) {
         sem_wait(&data->sem);               
-        pthread_mutex_lock(&data->mutex);
+        mutex_lock(&data->mutex);
         if(data->childCnt == 0 && data->exited){
-            pthread_mutex_unlock(&data->mutex);
+            mutex_unlock(&data->mutex);
             pthread_exit(NULL);
         }
-        pthread_mutex_unlock(&data->mutex);
+        mutex_unlock(&data->mutex);
         pid = wait(&status);
         if (pid == -1)
             perror("Error in wait");
@@ -31,10 +31,10 @@ void *monitorChildren(void *arg){
         if(endtime == (time_t) -1) 
             fprintf(stderr, "Error getting child endtime\n");
 
-        pthread_mutex_lock(&data->mutex);
+        mutex_lock(&data->mutex);
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
-        pthread_mutex_unlock(&data->mutex);
+        mutex_unlock(&data->mutex);
     }
 }
 
@@ -62,9 +62,9 @@ int createProcess(char *argVector[], list_t *pidList) {
 
 
 void exitShell(sharedData_t data,pthread_t monitorThread) {
-    pthread_mutex_lock(&data->mutex);
+    mutex_lock(&data->mutex);
     data->exited = 1;
-    pthread_mutex_unlock(&data->mutex);
+    mutex_unlock(&data->mutex);
 
     sem_post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
 
@@ -82,6 +82,19 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     free(data);
 }
 
+void mutex_lock(pthread_mutex_t *mutex) {
+    if (pthread_mutex_lock(mutex)) {
+        perror("Error locking the mutex");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void mutex_unlock(pthread_mutex_t *mutex) {
+    if (pthread_mutex_unlock(mutex)) {
+        perror("Error unlocking the mutex");
+        exit(EXIT_FAILURE);
+    }
+}
 
 int main(int argc, char const *argv[]) {
 
@@ -139,12 +152,12 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-            pthread_mutex_lock(&data->mutex);
+            mutex_lock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
                 sem_post(&data->sem);
             }
-            pthread_mutex_unlock(&data->mutex);
+            mutex_unlock(&data->mutex);
         }
     }
 
