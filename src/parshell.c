@@ -88,7 +88,6 @@ int main(int argc, char const *argv[]) {
     int i;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
-    char *user = getenv("USER"); /* Used just to adorn the prompt line (%user%@par-shell) */
     sharedData_t data = malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
 
@@ -97,8 +96,6 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (user == NULL)
-        user = "user";
 
     data->pidList = lst_new();
     if (data->pidList == NULL) {
@@ -128,8 +125,6 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         int numArgs;
-        if (isatty(fileno(stdin))) /* Checks if input source is a terminal or pipe/file */
-            printf("%s@par-shell$ ", user);
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0)
         {
