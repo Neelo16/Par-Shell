@@ -16,10 +16,10 @@ void *monitorChildren(void *arg) {
     int status;
     int pid;
     while(1) {
-        wait(&data->sem);               
-        mutex_lock(&data->mutex);
+        semWait(&data->sem);               
+        mutexLock(&data->mutex);
         if(data->childCnt == 0 && data->exited) {
-            mutex_unlock(&data->mutex);
+            mutexUnlock(&data->mutex);
             pthread_exit(NULL);
         }
         mutexUnlock(&data->mutex);
@@ -178,7 +178,7 @@ int main(int argc, char const *argv[]) {
             mutexLock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
-                post(&data->sem);
+                semPost(&data->sem);
             }
             mutexUnlock(&data->mutex);
         }
