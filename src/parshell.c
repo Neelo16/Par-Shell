@@ -86,6 +86,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     free(data);
 }
 
+
 void mutexLock(pthread_mutex_t *mutex) {
     if (pthread_mutex_lock(mutex)) {
         fprintf(stderr, "Error locking the mutex.\n");
@@ -100,6 +101,7 @@ void mutexUnlock(pthread_mutex_t *mutex) {
     }
 }
 
+
 void semWait(sem_t *sem) {
     if (sem_wait(sem)) {
         perror("Error waiting for semaphore");
@@ -107,12 +109,14 @@ void semWait(sem_t *sem) {
     }
 }
 
+
 void semPost(sem_t *sem) {
     if (sem_post(sem)) {
         perror("Error posting semaphore");
         exit(EXIT_FAILURE);
     }
 }
+
 
 int main(int argc, char const *argv[]) {
 
@@ -126,7 +130,6 @@ int main(int argc, char const *argv[]) {
         perror("Error allocating space for shared variables in main");
         return EXIT_FAILURE;
     }
-
 
     data->pidList = lst_new();
     if (data->pidList == NULL) {
