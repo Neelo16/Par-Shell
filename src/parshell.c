@@ -162,12 +162,9 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-<<<<<<< HEAD
             mutex_lock(&data->mutex);
-=======
             sem_wait(&proc_limiter);
             pthread_mutex_lock(&data->mutex);
->>>>>>> cd738b60a301a345ef58e2c92a90d28ab1d0c15d
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
                 sem_post(&data->sem);
