@@ -94,6 +94,7 @@ void mutexLock(pthread_mutex_t *mutex) {
     }
 }
 
+
 void mutexUnlock(pthread_mutex_t *mutex) {
     if (pthread_mutex_unlock(mutex)) {
         fprintf(stderr, "Error unlocking the mutex.\n");
