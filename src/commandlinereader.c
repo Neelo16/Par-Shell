@@ -32,7 +32,7 @@ int readLineArguments(char **argVector, int vectorSize, char *buffer, int buffer
 
   char *token;
 
-  if (argVector == NULL || vectorSize == 0 || buffersize == 0)
+  if (argVector == NULL || buffersize == 0 || vectorSize == 0)
     return 0;
 
   if (fgets(buffer, buffersize, stdin) == NULL) {
