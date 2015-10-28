@@ -10,8 +10,6 @@
 #include "parshell.h"
 #include "commandlinereader.h"
 
-sem_t proc_limiter;
-
 void *monitorChildren(void *arg){
     sharedData_t data = (sharedData_t) arg;
     time_t endtime;
@@ -19,12 +17,12 @@ void *monitorChildren(void *arg){
     int pid;
     while(1) {
         wait(&data->sem);               
-        mutex_lock(&data->mutex);
+        mutexLock(&data->mutex);
         if(data->childCnt == 0 && data->exited){
             mutex_unlock(&data->mutex);
             pthread_exit(NULL);
         }
-        mutex_unlock(&data->mutex);
+        mutexUnlock(&data->mutex);
         pid = wait(&status);
         if (pid == -1)
             perror("Error in wait");
@@ -32,11 +30,11 @@ void *monitorChildren(void *arg){
         if(endtime == (time_t) -1) 
             fprintf(stderr, "Error getting child endtime\n");
 
-        mutex_lock(&data->mutex);
+        mutexLock(&data->mutex);
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
-        mutex_unlock(&data->mutex);
-        post(&proc_limiter);
+        mutexUnlock(&data->mutex);
+        semPost(&data->procLimiter);
     }
 }
 
@@ -64,11 +62,11 @@ int createProcess(char *argVector[], list_t *pidList) {
 
 
 void exitShell(sharedData_t data,pthread_t monitorThread) {
-    mutex_lock(&data->mutex);
+    mutexLock(&data->mutex);
     data->exited = 1;
-    mutex_unlock(&data->mutex);
+    mutexUnlock(&data->mutex);
 
-    post(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
+    semPost(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
 
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
@@ -81,35 +79,35 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (sem_destroy(&data->sem))
         perror("Error destroying semaphore");
 
-    if (sem_destroy(&proc_limiter))
+    if (sem_destroy(&data->procLimiter))
         perror("Error destroying process limiting semaphore");
 
     lst_destroy(data->pidList);
     free(data);
 }
 
-void mutex_lock(pthread_mutex_t *mutex) {
+void mutexLock(pthread_mutex_t *mutex) {
     if (pthread_mutex_lock(mutex)) {
         fprintf(stderr, "Error locking the mutex.\n");
         exit(EXIT_FAILURE);
     }
 }
 
-void mutex_unlock(pthread_mutex_t *mutex) {
+void mutexUnlock(pthread_mutex_t *mutex) {
     if (pthread_mutex_unlock(mutex)) {
         fprintf(stderr, "Error unlocking the mutex.\n");
         exit(EXIT_FAILURE);
     }
 }
 
-void wait(sem_t *sem) {
+void semWait(sem_t *sem) {
     if (sem_wait(sem)) {
         perror("Error waiting for semaphore");
         exit(EXIT_FAILURE);
     }
 }
 
-void post(sem_t *sem) {
+void semPost(sem_t *sem) {
     if (sem_post(sem)) {
         perror("Error posting semaphore");
         exit(EXIT_FAILURE);
@@ -142,7 +140,7 @@ int main(int argc, char const *argv[]) {
 
     pthread_mutex_init(&data->mutex, NULL);
 
-    if (sem_init(&proc_limiter, 0, MAXPAR)) {
+    if (sem_init(&data->procLimiter, 0, MAXPAR)) {
         perror("Failed to initialize process limiting semaphore");
         return EXIT_FAILURE;
     }
@@ -177,13 +175,13 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-            wait(&proc_limiter);
-            mutex_lock(&data->mutex);
+            semWait(&data->procLimiter);
+            mutexLock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
                 post(&data->sem);
             }
-            mutex_unlock(&data->mutex);
+            mutexUnlock(&data->mutex);
         }
     }
 
