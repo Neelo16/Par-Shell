@@ -10,15 +10,15 @@
 #include "parshell.h"
 #include "commandlinereader.h"
 
-void *monitorChildren(void *arg){
+void *monitorChildren(void *arg) {
     sharedData_t data = (sharedData_t) arg;
     time_t endtime;
     int status;
     int pid;
     while(1) {
         wait(&data->sem);               
-        mutexLock(&data->mutex);
-        if(data->childCnt == 0 && data->exited){
+        mutex_lock(&data->mutex);
+        if(data->childCnt == 0 && data->exited) {
             mutex_unlock(&data->mutex);
             pthread_exit(NULL);
         }
@@ -162,8 +162,7 @@ int main(int argc, char const *argv[]) {
     while (1) {
         int numArgs;
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
-        if (numArgs < 0)
-        {
+        if (numArgs < 0) {
             fprintf(stderr, "Error reading arguments\n");
             exitShell(data, monitorThread);
             return EXIT_FAILURE;
