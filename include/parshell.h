@@ -15,7 +15,7 @@ typedef struct sharedData
    int exited;
    pthread_mutex_t mutex;
    sem_t procLimiter;
-   sem_t sem;
+   sem_t childCntSem;
    list_t *pidList;
 }* sharedData_t;
 

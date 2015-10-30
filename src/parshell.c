@@ -16,7 +16,7 @@ void *monitorChildren(void *arg) {
     int status;
     int pid;
     while(1) {
-        semWait(&data->sem);               
+        semWait(&data->childCntSem);               
         mutexLock(&data->mutex);
         if(data->childCnt == 0 && data->exited) {
             mutexUnlock(&data->mutex);
@@ -66,7 +66,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     data->exited = 1;
     mutexUnlock(&data->mutex);
 
-    semPost(&data->sem); /* Unlocks monitor thread in order to complete exit procedures */
+    semPost(&data->childCntSem); /* Unlocks monitor thread in order to complete exit procedures */
 
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
@@ -76,7 +76,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
-    if (sem_destroy(&data->sem))
+    if (sem_destroy(&data->childCntSem))
         perror("Error destroying semaphore");
 
     if (sem_destroy(&data->procLimiter))
@@ -149,7 +149,7 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (sem_init(&data->sem, 0, 0)) { 
+    if (sem_init(&data->childCntSem, 0, 0)) { 
     /* Semaphore used to lock monitor thread while there are no running children */
         perror("Failed to initialize semaphore");
         return EXIT_FAILURE;
@@ -182,7 +182,7 @@ int main(int argc, char const *argv[]) {
             mutexLock(&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
-                semPost(&data->sem);
+                semPost(&data->childCntSem);
             }
             mutexUnlock(&data->mutex);
         }
