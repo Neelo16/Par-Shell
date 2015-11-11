@@ -109,14 +109,20 @@ int main(int argc, char const *argv[]) {
     char *argVector[ARGNUM]; 
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
-    data->logFile = fopen("log.txt", "a+"); /* ERROR CHECK ?*/ 
-    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* comment for dummies needed */
-	data->totalRuntime = getTotalRuntime(data->logFile);
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
         return EXIT_FAILURE;
     }
+
+    data->logFile = fopen("log.txt", "a+");
+    if (data->logFile == NULL) {
+        perror("Failed to open log file");
+        return EXIT_FAILURE;
+    }
+    
+    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* comment for dummies needed */
+	data->totalRuntime = getTotalRuntime(data->logFile);
 
     data->pidList = lst_new();
     if (data->pidList == NULL) {
