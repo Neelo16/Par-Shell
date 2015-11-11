@@ -9,15 +9,6 @@
 #include "parshell.h"
 #include "commandlinereader.h"
 
-void condWait(pthread_cond_t varCond*,pthread_mutex_t mutex*){
-	pthread_cond_wait(varCond, mutex);
-}
-
-
-void contSignal(pthread_cond_t varCond*){
-	pthread_cond_signal(varCond);
-}
-
 void *monitorChildren(void *arg) {
     sharedData_t data = (sharedData_t) arg;
     time_t endtime;
@@ -26,7 +17,7 @@ void *monitorChildren(void *arg) {
     while(1) {             
         mutexLock(&data->mutex);
 		while(data->childCnt == 0 && data->exited == 0)
-			condWait(&childCntCond,&data->mutex);
+			condWait(&data->childCntCond,&data->mutex);
         if(data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
             pthread_exit(NULL);
@@ -43,7 +34,7 @@ void *monitorChildren(void *arg) {
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
         mutexUnlock(&data->mutex);
-		condSignal(&procLimiterCond);
+		condSignal(&data->procLimiterCond);
     }
 }
 
@@ -106,6 +97,20 @@ void mutexUnlock(pthread_mutex_t *mutex) {
     }
 }
 
+void condWait(pthread_cond_t *varCond, pthread_mutex_t *mutex) {
+	if(pthread_cond_wait(varCond, mutex)) {
+        fprintf(stderr, "Error waiting for condition variable\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void condSignal(pthread_cond_t *varCond) {
+	if(pthread_cond_signal(varCond)) {
+		fprintf(stderr, "Error signaling condition variable\n");
+		exit(EXIT_FAILURE);
+	}
+}
 
 int getNumLines(FILE *f) {
     int cnt = 0;
@@ -166,7 +171,7 @@ int main(int argc, char const *argv[]) {
         else {
             mutexLock(&data->mutex);
 			while(data->childCnt == MAXPAR)
-				condWait(&data->procLimiterCond);
+				condWait(&data->procLimiterCond,&data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
 				condSignal(&data->childCntCond);
