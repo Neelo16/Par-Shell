@@ -75,7 +75,8 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
-	/* Destruir var conds ITS IMPORTANT THAT YOU ERASE THIS LINE, SO ILL SPAM FOREVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER*/
+	pthread_cond_destroy(&data->childCntCond);
+	pthread_cond_destroy(&data->procLimiterCond);
 
     lst_destroy(data->pidList);
     free(data);
@@ -105,7 +106,8 @@ int main(int argc, char const *argv[]) {
     /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
 
     pthread_mutex_init(&data->mutex, NULL);
-
+	pthread_cond_init(&data->childCntCond,NULL);
+	pthread_cond_init(&data->procLimiterCond,NULL);
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
         fprintf(stderr, "Failed to create thread.\n");
