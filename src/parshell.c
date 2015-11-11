@@ -93,7 +93,8 @@ int main(int argc, char const *argv[]) {
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
     data->logFile = fopen("log.txt", "a+"); /* ERROR CHECK ?*/ 
-    data->currentIteration = 
+    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* comment for dummies needed */
+	data->totalRuntime = getTotalRuntime(data->logFile);
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
