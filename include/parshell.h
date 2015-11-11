@@ -30,21 +30,6 @@ void exitShell(sharedData_t data,pthread_t monitorThread);
    Returns 1 on success and 0 on failure */
 int createProcess(char *argVector[], list_t *pidList);
 
-/* Locks the mutex and exits if there's an error */
-void mutexLock(pthread_mutex_t *mutex);
-
-/* Unlocks the mutex and exits if there's an error */
-void mutexUnlock(pthread_mutex_t *mutex);
-
-/* Waits for the condition variable cond (unlocking its mutex) and exits on error */
-void condWait(pthread_cond_t *cond, pthread_mutex_t *mutex);
-
-/* Signal condition variable cond and exits on error */
-void condSignal(pthread_cond_t *cond);
-
-/* Reads given file and returns number of lines from current seek position */
-int getNumLines(FILE *f);
-
 /* Function that is run on a separate thread to monitor end times of
    forked processes */
 void *monitorChildren(void *arg);
