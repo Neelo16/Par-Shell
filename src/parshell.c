@@ -5,20 +5,29 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/wait.h>
-#include <semaphore.h>
 #include "list.h"
 #include "parshell.h"
 #include "commandlinereader.h"
+
+void condWait(pthread_cond_t varCond*,pthread_mutex_t mutex*){
+	pthread_cond_wait(varCond, mutex);
+}
+
+
+void contSignal(pthread_cond_t varCond*){
+	pthread_cond_signal(varCond);
+}
 
 void *monitorChildren(void *arg) {
     sharedData_t data = (sharedData_t) arg;
     time_t endtime;
     int status;
     int pid;
-    while(1) {
-        semWait(&data->childCntSem);               
+    while(1) {             
         mutexLock(&data->mutex);
-        if(data->childCnt == 0 && data->exited) {
+		while(data->childCnt == 0 && data->exited == 0)
+			condWait(&childCntCond,&data->mutex);
+        if(data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
             pthread_exit(NULL);
         }
@@ -34,7 +43,7 @@ void *monitorChildren(void *arg) {
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
         mutexUnlock(&data->mutex);
-        semPost(&data->procLimiter);
+		condSignal(&procLimiterCond);
     }
 }
 
@@ -65,8 +74,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     mutexLock(&data->mutex);
     data->exited = 1;
     mutexUnlock(&data->mutex);
-
-    semPost(&data->childCntSem); /* Unlocks monitor thread in order to complete exit procedures */
+	condSignal(&data->childCntCond);
 
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
@@ -76,11 +84,7 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
-    if (sem_destroy(&data->childCntSem))
-        perror("Error destroying semaphore");
-
-    if (sem_destroy(&data->procLimiter))
-        perror("Error destroying process limiting semaphore");
+	/* Destruir var conds ITS IMPORTANT THAT YOU ERASE THIS LINE, SO ILL SPAM FOREVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER*/
 
     lst_destroy(data->pidList);
     free(data);
@@ -103,21 +107,6 @@ void mutexUnlock(pthread_mutex_t *mutex) {
 }
 
 
-void semWait(sem_t *sem) {
-    if (sem_wait(sem)) {
-        perror("Error waiting for semaphore");
-        exit(EXIT_FAILURE);
-    }
-}
-
-
-void semPost(sem_t *sem) {
-    if (sem_post(sem)) {
-        perror("Error posting semaphore");
-        exit(EXIT_FAILURE);
-    }
-}
-
 int getNumLines(FILE *f) {
     int cnt = 0;
     while (!feof(f))
@@ -131,7 +120,7 @@ int main(int argc, char const *argv[]) {
     int i;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
-    sharedData_t data = malloc(sizeof(struct sharedData));
+    sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
 
     if (data == NULL) {
@@ -151,16 +140,6 @@ int main(int argc, char const *argv[]) {
 
     pthread_mutex_init(&data->mutex, NULL);
 
-    if (sem_init(&data->procLimiter, 0, MAXPAR)) {
-        perror("Failed to initialize process limiting semaphore");
-        return EXIT_FAILURE;
-    }
-
-    if (sem_init(&data->childCntSem, 0, 0)) { 
-    /* Semaphore used to lock monitor thread while there are no running children */
-        perror("Failed to initialize semaphore");
-        return EXIT_FAILURE;
-    }
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
         fprintf(stderr, "Failed to create thread.\n");
@@ -185,11 +164,12 @@ int main(int argc, char const *argv[]) {
             return EXIT_SUCCESS;
         }
         else {
-            semWait(&data->procLimiter);
             mutexLock(&data->mutex);
+			while(data->childCnt == MAXPAR)
+				condWait(&data->procLimiterCond);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
-                semPost(&data->childCntSem);
+				condSignal(&data->childCntCond);
             }
             mutexUnlock(&data->mutex);
         }
