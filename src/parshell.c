@@ -18,7 +18,7 @@ void *monitorChildren(void *arg) {
     int pid;
     while(1) {             
         mutexLock(&data->mutex);
-		while(data->childCnt == 0 && data->exited == 0)
+		while(data->childCnt == 0 && !data->exited)
 			condWait(&data->childCntCond,&data->mutex);
         if(data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
