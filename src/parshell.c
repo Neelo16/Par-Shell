@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/wait.h>
+#include "util.h"
 #include "list.h"
 #include "parshell.h"
 #include "commandlinereader.h"
@@ -70,6 +71,8 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
 
+    fclose(data->logFile); /* ERROR CHEKC? */
+
     lst_print(data->pidList);
 
     if (pthread_mutex_destroy(&data->mutex))
@@ -89,6 +92,8 @@ int main(int argc, char const *argv[]) {
     char *argVector[ARGNUM]; 
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
+    data->logFile = fopen("log.txt", "a+"); /* ERROR CHECK ?*/ 
+    data->currentIteration = 
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
