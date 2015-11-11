@@ -42,6 +42,9 @@ void semWait(sem_t *sem);
 /* Post the semaphore sem and exits on error */
 void semPost(sem_t *sem);
 
+/* Reads given file and returns number of lines from current seek position */
+int getNumLines(FILE *f);
+
 /* Function that is run on a separate thread to monitor end times of
    forked processes */
 void *monitorChildren(void *arg);

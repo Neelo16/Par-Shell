@@ -118,6 +118,13 @@ void semPost(sem_t *sem) {
     }
 }
 
+int getNumLines(FILE *f) {
+    int cnt = 0;
+    while (!feof(f))
+        if (fgetc(f) == '\n')
+            cnt++;
+    return cnt;
+}
 
 int main(int argc, char const *argv[]) {
 
