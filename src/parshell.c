@@ -13,6 +13,7 @@
 void *monitorChildren(void *arg) {
     sharedData_t data = (sharedData_t) arg;
     time_t endtime;
+    int executionTime;
     int status;
     int pid;
     while(1) {             
@@ -34,6 +35,18 @@ void *monitorChildren(void *arg) {
         mutexLock(&data->mutex);
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
+        if (pid != -1) {
+            executionTime = difftime(endtime, data->pidList->first->starttime); /*Necessario calcular difftime 2 vezes ou shall we just put in struct?*/
+            data->currentIteration++;
+            fprintf(data->logFile, "iteracao %d\npid: %d ", data->currentIteration, pid);
+            if(executionTime != -1) {
+            	data->totalRuntime += executionTime;
+                fprintf(data->logFile, "execution time: %d s\ntotal execution time: %d s\n", executionTime, data->totalRuntime);
+            }
+            else 
+            	fprintf(data->logFile, "execution time: Undetermined\ntotal execution time: %d s\n", data->totalRuntime);
+         	if (fflush(data->logFile)) perror("Error flushing to file");
+        }
         mutexUnlock(&data->mutex);
 		condSignal(&data->procLimiterCond);
     }
