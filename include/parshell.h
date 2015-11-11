@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "list.h"
+#include <stdio.h>
 
 #define ARGNUM 7
 #define BUFFER_SIZE 128
@@ -14,9 +15,12 @@ typedef struct sharedData
    int childCnt;
    int exited;
    pthread_mutex_t mutex;
-   sem_t procLimiter;
-   sem_t childCntSem;
+   pthread_cond_t procLimiterCond;
+   pthread_cond_t childCntCond;
    list_t *pidList;
+   int totalRuntime;
+   int currentIteration;
+   FILE *logFile;
 }* sharedData_t;
 
 /* Cleans up to exit the shell */
