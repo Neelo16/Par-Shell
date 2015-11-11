@@ -64,6 +64,17 @@ void update_terminated_process(list_t *list, int pid, time_t endtime, int status
     }
 }
 
+int get_execution_time(list_t *list, int pid) {
+    lst_iitem_t* item;
+    if (list == NULL) return -1;
+    item = list->first;
+    while (item != NULL) {
+        if (item->pid == pid)
+            return difftime(item->endtime, item->starttime);
+        item = item->next;
+    }
+    return -1;
+}
 
 void lst_print(list_t *list)
 {

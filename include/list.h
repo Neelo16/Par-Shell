@@ -32,6 +32,9 @@ void lst_destroy(list_t *);
         returns 1 on success and 0 on failure */
 int insert_new_process(list_t *list, int pid, time_t starttime);
 
+/* get_execution_time - returns execution time of given process or -1 on error */
+int get_execution_time(list_t *list, int pid);
+
 /* update_terminated_process - finds a process with process id and updates it with the return value
    and endtime */
 void update_terminated_process(list_t *list, int pid, time_t endtime, int status);

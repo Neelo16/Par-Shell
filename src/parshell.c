@@ -36,7 +36,7 @@ void *monitorChildren(void *arg) {
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
         if (pid != -1) {
-            executionTime = difftime(endtime, data->pidList->first->starttime); /*Necessario calcular difftime 2 vezes ou shall we just put in struct?*/
+            executionTime = get_execution_time(data->pidList, pid);
             data->currentIteration++;
             fprintf(data->logFile, "iteracao %d\npid: %d ", data->currentIteration, pid);
             if(executionTime != -1) {
