@@ -16,29 +16,39 @@ void *monitorChildren(void *arg) {
     int executionTime;
     int status;
     int pid;
+
     while(1) {             
         mutexLock(&data->mutex);
+
 		while(data->childCnt == 0 && !data->exited)
 			condWait(&data->childCntCond,&data->mutex);
+
         if(data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
             pthread_exit(NULL);
         }
+
         mutexUnlock(&data->mutex);
         pid = wait(&status);
+
         if (pid == -1)
             perror("Error in wait");
+
         endtime = time(NULL);
+
         if(endtime == (time_t) -1) 
             fprintf(stderr, "Error getting child endtime\n");
 
         mutexLock(&data->mutex);
         update_terminated_process(data->pidList, pid, endtime, status);
         data->childCnt--;
+
         if (pid != -1) {
             executionTime = get_execution_time(data->pidList, pid);
             data->currentIteration++;
-            fprintf(data->logFile, "iteracao %d\npid: %d ", data->currentIteration, pid);
+            fprintf(data->logFile, "iteracao %d\npid: %d ", 
+                    data->currentIteration, pid);
+            
             if(executionTime != -1) {
             	data->totalRuntime += executionTime;
                 fprintf(data->logFile, "execution time: %d s\n"
