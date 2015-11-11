@@ -41,10 +41,14 @@ void *monitorChildren(void *arg) {
             fprintf(data->logFile, "iteracao %d\npid: %d ", data->currentIteration, pid);
             if(executionTime != -1) {
             	data->totalRuntime += executionTime;
-                fprintf(data->logFile, "execution time: %d s\ntotal execution time: %d s\n", executionTime, data->totalRuntime);
+                fprintf(data->logFile, "execution time: %d s\n"
+                                       "total execution time: %d s\n", 
+                                       executionTime, data->totalRuntime);
             }
             else 
-            	fprintf(data->logFile, "execution time: Undetermined\ntotal execution time: %d s\n", data->totalRuntime);
+            	fprintf(data->logFile, "execution time: Undetermined\n"
+                                       "total execution time: %d s\n", 
+                                       data->totalRuntime);
          	if (fflush(data->logFile)) perror("Error flushing to file");
         }
         mutexUnlock(&data->mutex);
