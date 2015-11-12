@@ -45,9 +45,9 @@ void *monitorChildren(void *arg) {
 
         if (pid != -1) {
             executionTime = get_execution_time(data->pidList, pid);
-            data->currentIteration++;
             fprintf(data->logFile, "iteracao %d\npid: %d ", 
                     data->currentIteration, pid);
+            data->currentIteration++;
 
             if (executionTime != -1) {
             	data->totalRuntime += executionTime;
@@ -133,8 +133,7 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
     
-    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* there are 3 lines per iteration
-                                                                       and it starts on 0 instead of 1 */
+    data->currentIteration = getNumLines(data->logFile) / 3; /* there are 3 lines per iteration */
 	data->totalRuntime = getTotalRuntime(data->logFile);
 
     data->pidList = lst_new();
