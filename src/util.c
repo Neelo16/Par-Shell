@@ -26,13 +26,13 @@ int getTotalRuntime(FILE *f) {
 
     return totalRuntime;
 }
+
 void mutexLock(pthread_mutex_t *mutex) {
     if (pthread_mutex_lock(mutex)) {
         fprintf(stderr, "Error locking the mutex.\n");
         exit(EXIT_FAILURE);
     }
 }
-
 
 void mutexUnlock(pthread_mutex_t *mutex) {
     if (pthread_mutex_unlock(mutex)) {
@@ -47,7 +47,6 @@ void condWait(pthread_cond_t *varCond, pthread_mutex_t *mutex) {
         exit(EXIT_FAILURE);
     }
 }
-
 
 void condSignal(pthread_cond_t *varCond) {
     if(pthread_cond_signal(varCond)) {
