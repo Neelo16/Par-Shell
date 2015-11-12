@@ -48,7 +48,7 @@ void *monitorChildren(void *arg) {
             data->currentIteration++;
             fprintf(data->logFile, "iteracao %d\npid: %d ", 
                     data->currentIteration, pid);
-            
+
             if(executionTime != -1) {
             	data->totalRuntime += executionTime;
                 fprintf(data->logFile, "execution time: %d s\n"
@@ -98,7 +98,8 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
 
-    fclose(data->logFile); /* ERROR CHEKC? */
+    if (fclose(data->logFile))
+        perror("Error closing log file");
 
     lst_print(data->pidList);
 
