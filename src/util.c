@@ -5,7 +5,6 @@
 
 int getTotalRuntime(FILE *f) {
     int totalRuntime = 0;
-    char c;
 
     rewind(f); /* Ensures the position indicator starts at 
                   the beginning of the file so we can properly
@@ -16,7 +15,7 @@ int getTotalRuntime(FILE *f) {
 
     fseek(f, -4, SEEK_END); /* Sets the file position indicator to the last
                                digit in the total runtime number */
-    while ((c = fgetc(f)) != ' ') {
+    while (fgetc(f) != ' ') {
         
       fseek(f, -2, SEEK_CUR); /* Undoes the position indicator increment
                                  caused by fgetc and seeks to the previous
@@ -61,6 +60,7 @@ void condSignal(pthread_cond_t *varCond) {
 
 int getNumLines(FILE *f) {
     int cnt = 0;
+    rewind(f); /* Makes sure we count every line in the file */
     while (!feof(f))
         if (fgetc(f) == '\n')
             cnt++;

@@ -20,7 +20,8 @@ void condWait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 /* Signal condition variable cond and exits on error */
 void condSignal(pthread_cond_t *cond);
 
-/* Reads given file and returns number of lines from current seek position */
+/* Reads given file and returns number of lines from current seek position.
+   Given file's position indicator will be set to the end of the file */
 int getNumLines(FILE *f);
 
 #endif
