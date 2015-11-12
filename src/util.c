@@ -15,12 +15,10 @@ int getTotalRuntime(FILE *f) {
 
     fseek(f, -4, SEEK_END); /* Sets the file position indicator to the last
                                digit in the total runtime number */
-    while (fgetc(f) != ' ') {
-        
+    while (fgetc(f) != ' ')
       fseek(f, -2, SEEK_CUR); /* Undoes the position indicator increment
                                  caused by fgetc and seeks to the previous
                                  character */
-    }
 
     fscanf(f, "%d", &totalRuntime);
 
