@@ -7,7 +7,9 @@ int getTotalRuntime(FILE *f) {
     int totalRuntime = 0;
     char c;
 
-    rewind(f);
+    rewind(f); /* Ensures the position indicator starts at 
+                  the beginning of the file so we can properly
+                  detect an empty file */
 
     if (fgetc(f) == EOF)
       return 0;
@@ -17,7 +19,7 @@ int getTotalRuntime(FILE *f) {
     while ((c = fgetc(f)) != ' ') {
         
       fseek(f, -2, SEEK_CUR); /* Undoes the position indicator increment
-                                 cause by fgetc and seeks to the previous
+                                 caused by fgetc and seeks to the previous
                                  character */
     }
 

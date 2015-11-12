@@ -20,10 +20,10 @@ void *monitorChildren(void *arg) {
     while(1) {             
         mutexLock(&data->mutex);
 
-		while(data->childCnt == 0 && !data->exited)
-			condWait(&data->childCntCond,&data->mutex);
+		while (data->childCnt == 0 && !data->exited)
+			condWait(&data->childCntCond, &data->mutex);
 
-        if(data->exited && data->childCnt == 0) {
+        if (data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
             pthread_exit(NULL);
         }
@@ -36,7 +36,7 @@ void *monitorChildren(void *arg) {
 
         endtime = time(NULL);
 
-        if(endtime == (time_t) -1) 
+        if (endtime == (time_t) -1) 
             fprintf(stderr, "Error getting child endtime\n");
 
         mutexLock(&data->mutex);
@@ -49,7 +49,7 @@ void *monitorChildren(void *arg) {
             fprintf(data->logFile, "iteracao %d\npid: %d ", 
                     data->currentIteration, pid);
 
-            if(executionTime != -1) {
+            if (executionTime != -1) {
             	data->totalRuntime += executionTime;
                 fprintf(data->logFile, "execution time: %d s\n"
                                        "total execution time: %d s\n", 
@@ -106,8 +106,9 @@ void exitShell(sharedData_t data,pthread_t monitorThread) {
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
-	pthread_cond_destroy(&data->childCntCond);
-	pthread_cond_destroy(&data->procLimiterCond);
+	if (pthread_cond_destroy(&data->childCntCond) || 
+	    pthread_cond_destroy(&data->procLimiterCond))
+        fprintf(stderr, "Error destroying condition variables\n");
 
     lst_destroy(data->pidList);
     free(data);
@@ -132,7 +133,8 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
     
-    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* comment for dummies needed */
+    data->currentIteration = (getNumLines(data->logFile) / 3) - 1; /* there are 3 lines per iteration
+                                                                       and it starts on 0 instead of 1 */
 	data->totalRuntime = getTotalRuntime(data->logFile);
 
     data->pidList = lst_new();
@@ -146,8 +148,8 @@ int main(int argc, char const *argv[]) {
     /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
 
     pthread_mutex_init(&data->mutex, NULL);
-	pthread_cond_init(&data->childCntCond,NULL);
-	pthread_cond_init(&data->procLimiterCond,NULL);
+	pthread_cond_init(&data->childCntCond, NULL);
+	pthread_cond_init(&data->procLimiterCond, NULL);
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
         fprintf(stderr, "Failed to create thread.\n");
@@ -174,7 +176,7 @@ int main(int argc, char const *argv[]) {
         else {
             mutexLock(&data->mutex);
 			while(data->childCnt == MAXPAR)
-				condWait(&data->procLimiterCond,&data->mutex);
+				condWait(&data->procLimiterCond, &data->mutex);
             if(createProcess(argVector, data->pidList)) {
                 data->childCnt++;
 				condSignal(&data->childCntCond);

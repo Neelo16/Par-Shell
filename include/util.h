@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
-/* Parses given file and extracts total runtime from the last line */
+/* Parses given file and extracts total runtime from the last line.
+   Given file's position indicator will be set to the end of the file */
 int getTotalRuntime(FILE *f);
 
 /* Locks the mutex and exits if there's an error */
