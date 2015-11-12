@@ -133,8 +133,21 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
     
-    data->currentIteration = getNumLines(data->logFile) / 3; /* there are 3 lines per iteration */
-	data->totalRuntime = getTotalRuntime(data->logFile);
+    int numLines = getNumLines(data->logFile);
+
+    if (numLines % 3 != 0) {
+        fprintf(stderr, "Log file corrupted, will create a new file.\n");
+        data->logFile = freopen("log.txt", "w+", data->logFile);
+        if (data->logFile == NULL) {
+            perror("Failed to create the new log file");
+            return EXIT_FAILURE;
+        }
+        data->currentIteration = data->totalRuntime = 0;
+    }
+    else {
+        data->currentIteration = numLines / 3; /* there are 3 lines per iteration */
+        data->totalRuntime = getTotalRuntime(data->logFile);
+    }
 
     data->pidList = lst_new();
     if (data->pidList == NULL) {
