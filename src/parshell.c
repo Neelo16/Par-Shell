@@ -89,7 +89,7 @@ int createProcess(char *argVector[], list_t *pidList) {
 }
 
 
-void exitShell(sharedData_t data,pthread_t monitorThread) {
+void exitShell(sharedData_t data, pthread_t monitorThread) {
     mutexLock(&data->mutex);
     data->exited = 1;
     mutexUnlock(&data->mutex);
