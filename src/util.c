@@ -13,10 +13,10 @@ int getTotalRuntime(FILE *f) {
     if (fgetc(f) == EOF)
       return 0;
 
-    fseek(f, -4, SEEK_END); /* Sets the file position indicator to the last
+    fseek(f, -4L, SEEK_END); /* Sets the file position indicator to the last
                                digit in the total runtime number */
     while (fgetc(f) != ' ')
-      fseek(f, -2, SEEK_CUR); /* Undoes the position indicator increment
+      fseek(f, -2L, SEEK_CUR); /* Undoes the position indicator increment
                                  caused by fgetc and seeks to the previous
                                  character */
 
