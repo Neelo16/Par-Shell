@@ -57,7 +57,7 @@ void condSignal(pthread_cond_t *varCond) {
 
 int getNumLines(FILE *f) {
     int cnt = 0;
-    char c;
+    int c;
     rewind(f); /* Makes sure we count every line in the file */
     while ((c = fgetc(f)) != EOF) {
         if (c == '\n')
@@ -68,5 +68,7 @@ int getNumLines(FILE *f) {
                                      it counts as a line */
         return 1;
 
-    return cnt;
+    fseek(f, -1L, SEEK_END);
+
+    return fgetc(f) == '\n'? cnt : cnt + 1;
 }
