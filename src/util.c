@@ -64,11 +64,12 @@ int getNumLines(FILE *f) {
             cnt++;
     }
 
-    if (ftell(f) > 0 && cnt == 0) /* if there's at least one character in the file,
-                                     it counts as a line */
-        return 1;
-    else if (ftell(f) == 0)
+    if (ftell(f) == 0)
         return 0;
+    else if (ftell(f) > 0 && cnt == 0) /* if there's at least one 
+                                        * character in the file,
+                                        * it counts as a line */
+        return 1;
 
     fseek(f, -1L, SEEK_END);
 

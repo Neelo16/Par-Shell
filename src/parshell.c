@@ -51,15 +51,17 @@ void *monitorChildren(void *arg) {
 
             if (executionTime != -1) {
             	data->totalRuntime += executionTime;
-                fprintf(data->logFile, "execution time: %d s\n"
-                                       "total execution time: %d s\n", 
-                                       executionTime, data->totalRuntime);
+                fprintf(data->logFile, "execution time: %d s\n", 
+                                       executionTime);
             }
             else 
-            	fprintf(data->logFile, "execution time: Undetermined\n"
-                                       "total execution time: %d s\n", 
-                                       data->totalRuntime);
-         	if (fflush(data->logFile)) perror("Error flushing to file");
+            	fprintf(data->logFile, "execution time: Undetermined\n");
+
+            fprintf(data->logFile, "total execution time: %d s\n",
+                                   data->totalRuntime);
+
+         	if (fflush(data->logFile)) 
+                perror("Error flushing to file");
         }
         mutexUnlock(&data->mutex);
 		condSignal(&data->procLimiterCond);
@@ -82,8 +84,8 @@ int createProcess(char *argVector[], list_t *pidList) {
     else {
         time_t starttime = time(NULL);
         if (!insert_new_process(pidList, pid, starttime))
-            fprintf(stderr, "Failed to save info for process %d"
-                            ", will not display process info on exit\n", pid);
+            fprintf(stderr, "Failed to save info for process %d, "
+                            "will not display process info on exit\n", pid);
         return 1;
     }
 }
