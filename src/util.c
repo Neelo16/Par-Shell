@@ -70,5 +70,6 @@ int getNumLines(FILE *f) {
 
     fseek(f, -1L, SEEK_END);
 
-    return fgetc(f) == '\n'? cnt : cnt + 1;
+    return fgetc(f) == '\n'? cnt : cnt + 1; /* Checks if there's a line at the end
+                                               without a newline character */
 }
