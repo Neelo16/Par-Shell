@@ -123,6 +123,7 @@ int main(int argc, char const *argv[]) {
     char *argVector[ARGNUM]; 
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
+    int numLines;
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
@@ -135,7 +136,7 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
     
-    int numLines = getNumLines(data->logFile);
+    numLines = getNumLines(data->logFile);
 
     if (numLines % 3 != 0) {
         fprintf(stderr, "Log file corrupted, will create a new file.\n");
