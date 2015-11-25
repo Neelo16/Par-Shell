@@ -24,4 +24,7 @@ void condSignal(pthread_cond_t *cond);
    Given file's position indicator will be set to the end of the file */
 int getNumLines(FILE *f);
 
+/* Reads a string from a pipe into the given buffer */
+void readFromPipe(char *buffer, int fd);
+
 #endif
