@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <sys/wait.h>
 #include "util.h"
@@ -77,8 +78,15 @@ int createProcess(char *argVector[], list_t *pidList) {
         return 0;
     }
     else if (pid == 0) {
+	int pid = (int) getpid();
+	char buffer[BUFFER_SIZE];
+	int fd = -1;
+	snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
+	fclose(stdout); 
+	fd = open(buffer, O_CREAT | O_WRONLY); /* TODO ERRR CHEKC*/
         execv(argVector[0], argVector);
         perror("Error executing process");
+	close(fd);
         exit(EXIT_FAILURE);
     }
     else {
