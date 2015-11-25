@@ -25,6 +25,6 @@ void condSignal(pthread_cond_t *cond);
 int getNumLines(FILE *f);
 
 /* Reads a string from a pipe into the given buffer */
-void readFromPipe(char *buffer, int fd);
+void readFromPipe(int fd, char *buffer, int buffersize);
 
 #endif
