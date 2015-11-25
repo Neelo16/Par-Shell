@@ -132,6 +132,10 @@ int main(int argc, char const *argv[]) {
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
     int numLines;
+	mkfifo("par-shell-in", 0777); /* FIXME */
+	fclose(stdin);
+	open("par-shell-in", O_RDONLY | O_NONBLOCK);
+
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");

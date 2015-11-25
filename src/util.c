@@ -85,3 +85,4 @@ void readFromPipe(int fd, char *buffer, int buffersize) {
         *buffer++ = c;
     }
 }
+
