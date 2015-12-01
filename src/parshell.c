@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "util.h"
 #include "list.h"
 #include "parshell.h"
@@ -121,6 +124,7 @@ void exitShell(sharedData_t data, pthread_t monitorThread) {
         fprintf(stderr, "Error destroying condition variables\n");
 
     lst_destroy(data->pidList);
+	unlink("/tmp/par-shell-in");
     free(data);
 }
 
@@ -132,9 +136,9 @@ int main(int argc, char const *argv[]) {
     sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
     pthread_t monitorThread;
     int numLines;
-	mkfifo("par-shell-in", 0777); /* FIXME */
-	fclose(stdin);
-	open("par-shell-in", O_RDONLY | O_NONBLOCK);
+	mkfifo("/tmp/par-shell-in", 0777); /* FIXME */
+	close(fileno(stdin));
+	open("/tmp/par-shell-in", O_RDONLY);
 
 
     if (data == NULL) {
