@@ -77,12 +77,3 @@ int getNumLines(FILE *f) {
     return fgetc(f) == '\n'? cnt : cnt + 1; /* Checks if there's a line at the end
                                                without a newline character */
 }
-
-void readFromPipe(int fd, char *buffer, int buffersize) {
-    char c = '\n';
-    while (buffersize-- > 0 && c != '\0') {
-        read(fd, &c, 1);
-        *buffer++ = c;
-    }
-}
-
