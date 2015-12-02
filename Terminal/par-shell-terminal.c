@@ -40,11 +40,6 @@ int main(int argc, char const *argv[])
     if (write(pipe_fd, command, commandLength) < 0)
         perror("Error sending command to par-shell");
 
-    if (pipe_fd < 0) {
-        perror("Error opening the pipe");
-        return EXIT_FAILURE;
-    }
-
     while (1) {
         fgets(command, BUFFER_SIZE, stdin);
 
@@ -54,7 +49,13 @@ int main(int argc, char const *argv[])
             int totalExec = 0;
             char pipePathName[BUFFER_SIZE];
 
-            snprintf(pipePathName, BUFFER_SIZE, "/tmp/par-shell-terminal-%d", pid);
+            commandLength = snprintf(pipePathName, BUFFER_SIZE, "/tmp/par-shell-terminal-%d", pid);
+
+            if (commandLength < 0) {
+                fprintf(stderr, "Error creating RO pipe pathname");
+                return EXIT_FAILURE;
+            }
+
             mkfifo(pipePathName, S_IRUSR | S_IWUSR);
 
             commandLength = snprintf(command, BUFFER_SIZE, 

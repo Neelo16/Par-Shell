@@ -90,9 +90,16 @@ int createProcess(char *argVector[], list_t *pidList) {
         int pid = getpid();
         char buffer[BUFFER_SIZE];
         int fd = -1;
-        snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
+
+        if (snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid) < 0)
+            fprintf(stderr, "Error creating process output filename\n"); 
+
         fclose(stdout); 
-        fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
+        fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); 
+
+        if (fd < 0) 
+            perror("Error opening process output file"); /* FIXME should it continue? (/\same in snprintf)*/
+
         execv(argVector[0], argVector);
         perror("Error executing process");
         close(fd);
@@ -296,9 +303,9 @@ int main(int argc, char const *argv[]) {
                 (pthread_attr_init(&attr)) ||
                 (pthread_attr_setdetachstate(&attr,
                                              PTHREAD_CREATE_DETACHED)) ||
-                (pthread_create(&processingThread, 
-                                &attr, 
-                                processForkRequest,
+                (pthread_create(&processingThread,       /* A detached thread is created to deal with */
+                                &attr,                   /* the launching of programs. */
+                                processForkRequest,      /* If parshell is busy the thread is blocked */
                                 (void*) argVectorCopy))
                 )
                 fprintf(stderr, "Error processing arguments\n");

@@ -6,7 +6,8 @@
 
 terminalList_t createPidList() {
     terminalList_t list = (terminalList_t) malloc(sizeof(struct terminalList));
-    if (list != NULL) list->first = NULL;
+    if (list != NULL) 
+        list->first = NULL;
     return list;
 }
 

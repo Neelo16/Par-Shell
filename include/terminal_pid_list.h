@@ -18,13 +18,13 @@ terminalList_t createPidList();
  */
 int insertPid(int pid, terminalList_t list);
 
-/** Remove the given pid from the list. */
+/* Remove the given pid from the list. */
 void removePid(int pid, terminalList_t list);
 
-/** Send a KILL signal to all pids in the list. */
+/* Send a KILL signal to all pids in the list. */
 void killAllPids(terminalList_t list);
 
-/** Destroy the given list. */
+/* Destroy the given list. */
 void destroyTerminalList(terminalList_t list);
 
 #endif
