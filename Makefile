@@ -23,6 +23,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(EXT) $(INCDIR)/%.h
 
 clean:
 	@echo Cleaning...
-	rm -rf $(BUILDDIR) $(TARGET) par-shell-terminal
+	rm -rf $(BUILDDIR) $(TARGET) $(SECOND_TARGET)
 
 
