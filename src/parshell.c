@@ -267,18 +267,23 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp("stats", argVector[0])) {
             char *terminalPipePath = argVector[1];
             int terminalPipe_fd = open(terminalPipePath, O_WRONLY);
+
             if (terminalPipe_fd < 0) {
                 perror("Error opening pipe");
-                continue;
+                killAllPids(terminalList);
+                return EXIT_FAILURE;
             }
+
             mutexLock(&data->mutex);
-            if (write(terminalPipe_fd, &data->childCnt, sizeof(int) / sizeof(char)) < 0 ||
-                write(terminalPipe_fd, &data->totalRuntime, sizeof(int) / sizeof(char)) < 0) {
+            if (write(terminalPipe_fd, &data->childCnt, sizeof(int)) < 0 ||
+                write(terminalPipe_fd, &data->totalRuntime, sizeof(int)) < 0) {
+
                 perror("Error sending stats to par-shell-terminal");
                 killAllPids(terminalList);
                 return EXIT_FAILURE;
             }
             mutexUnlock(&data->mutex);
+
             if (close(terminalPipe_fd) < 0)
                 perror("Error closing pipe");
         }
@@ -292,9 +297,10 @@ int main(int argc, char const *argv[]) {
                 (pthread_attr_setdetachstate(&attr,
                                              PTHREAD_CREATE_DETACHED)) ||
                 (pthread_create(&processingThread, 
-                           &attr, 
-                           processForkRequest,
-                           (void*) argVectorCopy)))
+                                &attr, 
+                                processForkRequest,
+                                (void*) argVectorCopy))
+                )
                 fprintf(stderr, "Error processing arguments\n");
         }
     }

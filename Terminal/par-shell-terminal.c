@@ -54,7 +54,7 @@ int main(int argc, char const *argv[])
             int totalExec = 0;
             char pipePathName[BUFFER_SIZE];
 
-            snprintf(pipePathName, BUFFER_SIZE, "/tmp/%d", pid);
+            snprintf(pipePathName, BUFFER_SIZE, "/tmp/par-shell-terminal-%d", pid);
             mkfifo(pipePathName, S_IRUSR | S_IWUSR);
 
             commandLength = snprintf(command, BUFFER_SIZE, 
@@ -80,13 +80,13 @@ int main(int argc, char const *argv[])
             }
 
             printf("Running processes: ");
-            if (read(stats_fd, &numChildrenRun, sizeof(int) / sizeof(char)) < 0)
+            if (read(stats_fd, &numChildrenRun, sizeof(int)) < 0)
                 puts("Undetermined");
             else
                 printf("%d\n", numChildrenRun);
 
             printf("Total Execution Time: ");
-            if (read(stats_fd, &totalExec, sizeof(int) / sizeof(char)) < 0)
+            if (read(stats_fd, &totalExec, sizeof(int)) < 0)
                 puts("Undetermined");
             else
                 printf("%d\n", totalExec);
