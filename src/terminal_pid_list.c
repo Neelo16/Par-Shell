@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 
@@ -28,15 +29,25 @@ int insertPid(int pid, terminalList_t list) {
 void removePid(int pid, terminalList_t list) {
     terminalListItem_t item;
     terminalListItem_t aux;
-    if (list == NULL || list->first == NULL) return;
+
+    if (list == NULL || list->first == NULL) 
+        return;
+
     if(list->first->pid == pid) {
         aux = list->first;
         list->first = aux->next;
         free(aux);
         return;
     }
-    for(item = list->first; item->next != NULL && item->next->pid != pid; item = item->next);
-    if(item->next == NULL) return;
+
+    item = list->first;
+
+    while (item->next != NULL && item->next->pid != pid)
+        item = item->next;
+
+    if(item->next == NULL) 
+        return;
+
     aux = item->next;
     item->next = aux->next;
     free(aux);
@@ -44,20 +55,29 @@ void removePid(int pid, terminalList_t list) {
 
 void killAllPids(terminalList_t list) {
     terminalListItem_t item;
-    if (list == NULL) return;
+
+    if (list == NULL) 
+        return;
+
     item = list->first;
+
     while (item != NULL) {
-        kill(item->pid, SIGKILL);
+        if (kill(item->pid, SIGKILL))
+            perror("Error killing process");
         item = item->next;
     }
 }
 
-void destroyTerminalList(terminalList_t list){
+void destroyTerminalList(terminalList_t list) {
     terminalListItem_t item;
-    if(list == NULL) return;
+
+    if(list == NULL) 
+        return;
+
     item = list->first;
     free(list);
-    while(item != NULL){
+
+    while(item != NULL) {
         terminalListItem_t aux = item;
         item = item->next;
         free(aux);

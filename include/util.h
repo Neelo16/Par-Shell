@@ -29,7 +29,8 @@ int getNumLines(FILE *f);
    Returns NULL on exit. */
 char **copyStringVector(char **stringVector, int size);
 
-/* Auxiliar function to be used by copyStringVector */
+/* Returns a copy of the given string. The copy must be freed from
+   memory (using free). */
 char *copyString(char *string);
 
 #endif
