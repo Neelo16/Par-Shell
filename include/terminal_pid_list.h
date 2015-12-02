@@ -4,13 +4,17 @@
 typedef struct terminalListItem {
 	int pid;
 	struct terminalListItem *next;
+}* terminalListItem_t;
+
+typedef struct terminalList {
+    terminalListItem_t first;
 }* terminalList_t;
 
 /* Create a new list for storing pids. Returns NULL on error */
-terminalList_t createList();
+terminalList_t createPidList();
 
-/* Insert a pid in the given list. Returns 0 on success, and a
- * non-zero value on error.
+/* Insert a pid in the given list. Returns 0 on failure, and a
+ * non-zero value otherwise.
  */
 int insertPid(int pid, terminalList_t list);
 

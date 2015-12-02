@@ -1,10 +1,12 @@
 #ifndef __PARSHELL_H__
 #define __PARSHELL_H__
 
-#include "list.h"
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
+
+#include "list.h"
+#include "terminal_pid_list.h"
 
 #define ARGNUM 7
 #define BUFFER_SIZE 128
@@ -24,7 +26,7 @@ typedef struct sharedData
 }* sharedData_t;
 
 /* Cleans up to exit the shell */
-void exitShell(sharedData_t data, pthread_t monitorThread);
+void exitShell();
 
 /* Creates a new process and stores PID and start time in pidList
    Returns 1 on success and 0 on failure */

@@ -8,7 +8,10 @@ CFLAGS =-Wall -pedantic -g -pthread
 CC = gcc
 TARGET = par-shell
 
-all: $(TARGET)
+all: $(TARGET) par-shell-terminal
+
+par-shell-terminal:
+	(cd Terminal; gcc -o ../par-shell-terminal par-shell-terminal.c)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -I $(INCDIR) $^ -o $(TARGET)

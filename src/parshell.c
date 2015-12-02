@@ -1,9 +1,10 @@
 #include <time.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <pthread.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -12,10 +13,14 @@
 #include "util.h"
 #include "list.h"
 #include "parshell.h"
+#include "terminal_pid_list.h"
 #include "commandlinereader.h"
 
+sharedData_t data = NULL;
+terminalList_t terminalList;
+pthread_t monitorThread;
+
 void *monitorChildren(void *arg) {
-    sharedData_t data = (sharedData_t) arg;
     time_t endtime;
     int executionTime;
     int status;
@@ -86,7 +91,7 @@ int createProcess(char *argVector[], list_t *pidList) {
 	int fd = -1;
 	snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
 	fclose(stdout); 
-	fd = open(buffer, O_CREAT | O_WRONLY); /* TODO ERRR CHEKC*/
+	fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
         execv(argVector[0], argVector);
         perror("Error executing process");
 	close(fd);
@@ -102,7 +107,7 @@ int createProcess(char *argVector[], list_t *pidList) {
 }
 
 
-void exitShell(sharedData_t data, pthread_t monitorThread) {
+void exitShell() {
     mutexLock(&data->mutex);
     data->exited = 1;
     mutexUnlock(&data->mutex);
@@ -123,9 +128,16 @@ void exitShell(sharedData_t data, pthread_t monitorThread) {
 	    pthread_cond_destroy(&data->procLimiterCond))
         fprintf(stderr, "Error destroying condition variables\n");
 
+    killAllPids(terminalList);
     lst_destroy(data->pidList);
+    destroyTerminalList(terminalList);
 	unlink("/tmp/par-shell-in");
     free(data);
+}
+
+void handleSignal(int sig) {
+    exitShell();
+    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char const *argv[]) {
@@ -133,10 +145,9 @@ int main(int argc, char const *argv[]) {
     int i;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
-    sharedData_t data = (sharedData_t) malloc(sizeof(struct sharedData));
-    pthread_t monitorThread;
+    data = (sharedData_t) malloc(sizeof(struct sharedData));
     int numLines;
-	mkfifo("/tmp/par-shell-in", 0777); /* FIXME */
+	mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
 	close(fileno(stdin));
 	open("/tmp/par-shell-in", O_RDONLY);
 
@@ -174,6 +185,13 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
+    terminalList = createPidList();
+
+    if (terminalList == NULL) {
+        fprintf(stderr, "Failed to create list to save running terminals.\n");
+        return EXIT_FAILURE;
+    }
+
     data->childCnt = 0;
     data->exited = 0; 
     /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
@@ -182,7 +200,7 @@ int main(int argc, char const *argv[]) {
 	pthread_cond_init(&data->childCntCond, NULL);
 	pthread_cond_init(&data->procLimiterCond, NULL);
 
-    if (pthread_create(&monitorThread, NULL, monitorChildren, (void*) data)) {
+    if (pthread_create(&monitorThread, NULL, monitorChildren, NULL)) {
         fprintf(stderr, "Failed to create thread.\n");
         return EXIT_FAILURE;
     }
@@ -190,19 +208,39 @@ int main(int argc, char const *argv[]) {
     for(i = 0; i < ARGNUM; i++)
         argVector[i] = NULL;
 
+    signal(SIGINT, handleSignal); /* TODO ERROR CHEKC*/
+
     while (1) {
         int numArgs;
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0) {
             fprintf(stderr, "Error reading arguments\n");
-            exitShell(data, monitorThread);
+            exitShell();
             return EXIT_FAILURE;
         }
         else if (numArgs == 0)
             continue;
-        if (!strcmp("exit", argVector[0])) {
-            exitShell(data, monitorThread);
+        if (!strcmp("exit-global", argVector[0])) {
+            exitShell();
             return EXIT_SUCCESS;
+        }
+        else if (!strcmp("new_parshell_terminal", argVector[0])) {
+            int pid = atoi(argVector[1]);
+            if (!insertPid(pid, terminalList))
+                fprintf(stderr, "Error accepting new terminal\n");                
+        }
+        else if (!strcmp("exiting_parshell_terminal", argVector[0])) {
+            int pid = atoi(argVector[1]);
+            removePid(pid, terminalList);
+        }
+        else if (!strcmp("stats", argVector[0])) {
+            char *terminalPipePath = argVector[1];
+            int terminalPipe_fd = open(terminalPipePath, O_WRONLY);
+            mutexLock(&data->mutex);
+            write(terminalPipe_fd, &data->childCnt, sizeof(int) / sizeof(char));
+            write(terminalPipe_fd, &data->totalRuntime, sizeof(int) / sizeof(char));
+            mutexUnlock(&data->mutex);
+            close(terminalPipe_fd);
         }
         else {
             mutexLock(&data->mutex);
