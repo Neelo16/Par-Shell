@@ -267,6 +267,10 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp("stats", argVector[0])) {
             char *terminalPipePath = argVector[1];
             int terminalPipe_fd = open(terminalPipePath, O_WRONLY);
+            if (terminalPipe_fd < 0) {
+                perror("Error opening pipe");
+                continue;
+            }
             mutexLock(&data->mutex);
             if (write(terminalPipe_fd, &data->childCnt, sizeof(int) / sizeof(char)) < 0 ||
                 write(terminalPipe_fd, &data->totalRuntime, sizeof(int) / sizeof(char)) < 0) {
@@ -275,7 +279,8 @@ int main(int argc, char const *argv[]) {
                 return EXIT_FAILURE;
             }
             mutexUnlock(&data->mutex);
-            close(terminalPipe_fd);
+            if (close(terminalPipe_fd) < 0)
+                perror("Error closing pipe");
         }
         else {
             pthread_t processingThread;
