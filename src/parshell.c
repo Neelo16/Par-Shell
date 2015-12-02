@@ -151,8 +151,6 @@ void exitShell() {
     if (fclose(data->logFile))
         perror("Error closing log file");
 
-    lst_print(data->pidList);
-
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
@@ -160,10 +158,16 @@ void exitShell() {
         pthread_cond_destroy(&data->procLimiterCond))
         fprintf(stderr, "Error destroying condition variables\n");
 
+    if (close(control_open_fd))
+        perror("Error closing pipe");
+
+    if (unlink("/tmp/par-shell-in"))
+        perror("Error unlinking pipe");
+
+    lst_print(data->pidList);
+
     lst_destroy(data->pidList);
     destroyTerminalList(terminalList);
-    close(control_open_fd);
-    unlink("/tmp/par-shell-in");
     free(data);
     exit(EXIT_SUCCESS);
 }
@@ -181,12 +185,16 @@ int main(int argc, char const *argv[]) {
     data = (sharedData_t) malloc(sizeof(struct sharedData));
     mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
     close(fileno(stdin));
-    if (open("/tmp/par-shell-in", O_RDONLY))
+    if (open("/tmp/par-shell-in", O_RDONLY)) {
         perror("Error replacing stdin with pipe");
+        return EXIT_FAILURE;
+    }
 
-    control_open_fd = open("/tmp/par-shell-in", O_WRONLY); /* file descriptor used to prevent the pipe from
-                                                              becoming invalid */
-    if (control_open_fd < 0)
+    control_open_fd = open("/tmp/par-shell-in", /* file descriptor used to  */
+                            O_WRONLY);          /* prevent the pipe from    */
+                                                /* becoming invalid when no */
+                                                /* terminals are writing to */
+    if (control_open_fd < 0)                    /* it                       */
         perror("Error opening pipe");
 
     if (data == NULL) {
@@ -232,7 +240,8 @@ int main(int argc, char const *argv[]) {
 
     data->childCnt = 0;
     data->exited = 0; 
-    /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
+    /* Exited issues the exit command to the monitor thread */
+    /*        (ie. 1 means par-shell wants to exit)         */
 
     pthread_mutex_init(&data->mutex, NULL);
     pthread_cond_init(&data->childCntCond, NULL);
@@ -257,15 +266,17 @@ int main(int argc, char const *argv[]) {
             fprintf(stderr, "Error reading arguments\n");
             exitShell();
         }
-        else if (numArgs == 0)
+        if (numArgs == 0)
             continue;
         if (!strcmp("exit-global", argVector[0])) {
             exitShell();
         }
         else if (!strcmp("new_parshell_terminal", argVector[0])) {
             int pid = atoi(argVector[1]);
-            if (!insertPid(pid, terminalList))
+            if (!insertPid(pid, terminalList)) {
                 fprintf(stderr, "Error accepting new terminal\n");                
+                kill(pid, SIGKILL);
+            }
         }
         else if (!strcmp("exiting_parshell_terminal", argVector[0])) {
             int pid = atoi(argVector[1]);
@@ -299,17 +310,23 @@ int main(int argc, char const *argv[]) {
             pthread_attr_t attr;
             char **argVectorCopy = copyStringVector(argVector, 
                                                     numArgs);
-            if ((argVectorCopy == NULL) || 
+            if ((argVectorCopy == NULL) ||
+
+                /* A detached thread is created to deal with  */
+                /* the launching of child processes.          */
+                /* If par-shell is busy the thread is blocked */
+
                 (pthread_attr_init(&attr)) ||
                 (pthread_attr_setdetachstate(&attr,
                                              PTHREAD_CREATE_DETACHED)) ||
-                (pthread_create(&processingThread,       /* A detached thread is created to deal with */
-                                &attr,                   /* the launching of programs. */
-                                processForkRequest,      /* If parshell is busy the thread is blocked */
+                (pthread_create(&processingThread,       
+                                &attr,                   
+                                processForkRequest,   
                                 (void*) argVectorCopy))
                 )
                 fprintf(stderr, "Error processing arguments\n");
         }
     }
+
     return EXIT_FAILURE; /* This line should not be executed */
 }

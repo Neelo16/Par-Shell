@@ -29,16 +29,21 @@ typedef struct sharedData
 void exitShell();
 
 /* Creates a new process and stores PID and start time in pidList
-   Returns 1 on success and 0 on failure */
+ * Returns 1 on success and 0 on failure 
+ */
 int createProcess(char *argVector[], list_t *pidList);
 
-/* Creates a new thread to process a request to create a
- * new child process.
+/* Function used by a thread to process a request to create a
+ * new child process. The argument should be a vector of char*
+ * containing the process pathname in the first position, and
+ * any arguments in the remaining positions, ending with a
+ * NULL pointer.
  */
 void *processForkRequest(void *args);
 
 /* Function that is run on a separate thread to monitor end times of
-   forked processes */
+ * forked processes 
+ */
 void *monitorChildren(void *arg);
 
 #endif
