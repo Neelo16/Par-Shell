@@ -214,9 +214,7 @@ int main(int argc, char const *argv[]) {
         int numArgs;
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0) {
-            fprintf(stderr, "Error reading arguments\n");
-            exitShell();
-            return EXIT_FAILURE;
+            continue;
         }
         else if (numArgs == 0)
             continue;
