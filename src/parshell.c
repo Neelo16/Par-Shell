@@ -16,7 +16,7 @@
 #include "terminal_pid_list.h"
 #include "commandlinereader.h"
 
-sharedData_t data = NULL;
+sharedData_t data;
 terminalList_t terminalList;
 pthread_t monitorThread;
 int control_open_fd;
@@ -174,10 +174,13 @@ int main(int argc, char const *argv[]) {
     data = (sharedData_t) malloc(sizeof(struct sharedData));
     mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
     close(fileno(stdin));
-    open("/tmp/par-shell-in", O_RDONLY);
+    if (open("/tmp/par-shell-in", O_RDONLY))
+        perror("Error replacing stdin with pipe");
+
     control_open_fd = open("/tmp/par-shell-in", O_WRONLY); /* file descriptor used to prevent the pipe from
                                                               becoming invalid */
-
+    if (control_open_fd < 0)
+        perror("Error opening pipe");
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
@@ -207,6 +210,7 @@ int main(int argc, char const *argv[]) {
     }
 
     data->pidList = lst_new();
+
     if (data->pidList == NULL) {
         fprintf(stderr, "Failed to create list to save processes.\n");
         return EXIT_FAILURE;
@@ -235,7 +239,9 @@ int main(int argc, char const *argv[]) {
     for(i = 0; i < ARGNUM; i++)
         argVector[i] = NULL;
 
-    signal(SIGINT, handleSignal); /* TODO ERROR CHEKC*/
+    if (signal(SIGINT, handleSignal) == SIG_ERR)
+        perror("Error setting handler for SIGINT, will proceed "
+               "without handling the signal");
 
     while (1) {
         int numArgs;
@@ -262,8 +268,12 @@ int main(int argc, char const *argv[]) {
             char *terminalPipePath = argVector[1];
             int terminalPipe_fd = open(terminalPipePath, O_WRONLY);
             mutexLock(&data->mutex);
-            write(terminalPipe_fd, &data->childCnt, sizeof(int) / sizeof(char));
-            write(terminalPipe_fd, &data->totalRuntime, sizeof(int) / sizeof(char));
+            if (write(terminalPipe_fd, &data->childCnt, sizeof(int) / sizeof(char)) < 0 ||
+                write(terminalPipe_fd, &data->totalRuntime, sizeof(int) / sizeof(char)) < 0) {
+                perror("Error sending stats to par-shell-terminal");
+                killAllPids(terminalList);
+                return EXIT_FAILURE;
+            }
             mutexUnlock(&data->mutex);
             close(terminalPipe_fd);
         }
@@ -279,7 +289,7 @@ int main(int argc, char const *argv[]) {
                 (pthread_create(&processingThread, 
                            &attr, 
                            processForkRequest,
-                           (void*) argVectorCopy) != 0))
+                           (void*) argVectorCopy)))
                 fprintf(stderr, "Error processing arguments\n");
         }
     }
