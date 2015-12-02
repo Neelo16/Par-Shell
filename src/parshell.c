@@ -19,6 +19,7 @@
 sharedData_t data = NULL;
 terminalList_t terminalList;
 pthread_t monitorThread;
+int control_open_fd;
 
 void *monitorChildren(void *arg) {
     time_t endtime;
@@ -29,8 +30,8 @@ void *monitorChildren(void *arg) {
     while(1) {             
         mutexLock(&data->mutex);
 
-		while (data->childCnt == 0 && !data->exited)
-			condWait(&data->childCntCond, &data->mutex);
+        while (data->childCnt == 0 && !data->exited)
+            condWait(&data->childCntCond, &data->mutex);
 
         if (data->exited && data->childCnt == 0) {
             mutexUnlock(&data->mutex);
@@ -59,21 +60,21 @@ void *monitorChildren(void *arg) {
             data->currentIteration++;
 
             if (executionTime != -1) {
-            	data->totalRuntime += executionTime;
+                data->totalRuntime += executionTime;
                 fprintf(data->logFile, "execution time: %d s\n", 
                                        executionTime);
             }
             else 
-            	fprintf(data->logFile, "execution time: Undetermined\n");
+                fprintf(data->logFile, "execution time: Undetermined\n");
 
             fprintf(data->logFile, "total execution time: %d s\n",
                                    data->totalRuntime);
 
-         	if (fflush(data->logFile)) 
+            if (fflush(data->logFile)) 
                 perror("Error flushing to file");
         }
         mutexUnlock(&data->mutex);
-		condSignal(&data->procLimiterCond);
+        condSignal(&data->procLimiterCond);
     }
 }
 
@@ -86,15 +87,15 @@ int createProcess(char *argVector[], list_t *pidList) {
         return 0;
     }
     else if (pid == 0) {
-	int pid = (int) getpid();
-	char buffer[BUFFER_SIZE];
-	int fd = -1;
-	snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
-	fclose(stdout); 
-	fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
+    int pid = (int) getpid();
+    char buffer[BUFFER_SIZE];
+    int fd = -1;
+    snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
+    fclose(stdout); 
+    fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
         execv(argVector[0], argVector);
         perror("Error executing process");
-	close(fd);
+    close(fd);
         exit(EXIT_FAILURE);
     }
     else {
@@ -106,12 +107,33 @@ int createProcess(char *argVector[], list_t *pidList) {
     }
 }
 
+void *processForkRequest(void *args) {
+    char **argv = (char **) args;
+
+    if (argv == NULL) 
+        pthread_exit(NULL);
+
+    mutexLock(&data->mutex);
+    while(data->childCnt == MAXPAR)
+        condWait(&data->procLimiterCond, &data->mutex);
+    if(createProcess(argv, data->pidList)) {
+        data->childCnt++;
+        condSignal(&data->childCntCond);
+    }
+    mutexUnlock(&data->mutex);
+
+    while (*argv != NULL)
+        free(*argv++);
+
+    pthread_exit(NULL);
+}
 
 void exitShell() {
+    killAllPids(terminalList);
     mutexLock(&data->mutex);
     data->exited = 1;
     mutexUnlock(&data->mutex);
-	condSignal(&data->childCntCond);
+    condSignal(&data->childCntCond);
 
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
@@ -124,32 +146,34 @@ void exitShell() {
     if (pthread_mutex_destroy(&data->mutex))
         fprintf(stderr, "Error destroying mutex.\n");
 
-	if (pthread_cond_destroy(&data->childCntCond) || 
-	    pthread_cond_destroy(&data->procLimiterCond))
+    if (pthread_cond_destroy(&data->childCntCond) || 
+        pthread_cond_destroy(&data->procLimiterCond))
         fprintf(stderr, "Error destroying condition variables\n");
 
-    killAllPids(terminalList);
     lst_destroy(data->pidList);
     destroyTerminalList(terminalList);
-	unlink("/tmp/par-shell-in");
+    close(control_open_fd);
+    unlink("/tmp/par-shell-in");
     free(data);
+    exit(EXIT_SUCCESS);
 }
 
 void handleSignal(int sig) {
     exitShell();
-    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char const *argv[]) {
 
     int i;
-	int numLines;
+    int numLines;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
-	mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
-	close(fileno(stdin));
-	open("/tmp/par-shell-in", O_RDONLY);
+    mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
+    close(fileno(stdin));
+    open("/tmp/par-shell-in", O_RDONLY);
+    control_open_fd = open("/tmp/par-shell-in", O_WRONLY); /* file descriptor used to prevent the pipe from
+                                                              becoming invalid */
 
 
     if (data == NULL) {
@@ -197,8 +221,8 @@ int main(int argc, char const *argv[]) {
     /* Exited issues the exit command to the monitor thread (ie. 1 means par-shell wants to exit) */
 
     pthread_mutex_init(&data->mutex, NULL);
-	pthread_cond_init(&data->childCntCond, NULL);
-	pthread_cond_init(&data->procLimiterCond, NULL);
+    pthread_cond_init(&data->childCntCond, NULL);
+    pthread_cond_init(&data->procLimiterCond, NULL);
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, NULL)) {
         fprintf(stderr, "Failed to create thread.\n");
@@ -214,13 +238,13 @@ int main(int argc, char const *argv[]) {
         int numArgs;
         numArgs = readLineArguments(argVector, ARGNUM, buffer, BUFFER_SIZE);
         if (numArgs < 0) {
-            continue;
+            fprintf(stderr, "Error reading arguments\n");
+            exitShell();
         }
         else if (numArgs == 0)
             continue;
         if (!strcmp("exit-global", argVector[0])) {
             exitShell();
-            return EXIT_SUCCESS;
         }
         else if (!strcmp("new_parshell_terminal", argVector[0])) {
             int pid = atoi(argVector[1]);
@@ -241,14 +265,15 @@ int main(int argc, char const *argv[]) {
             close(terminalPipe_fd);
         }
         else {
-            mutexLock(&data->mutex);
-			while(data->childCnt == MAXPAR)
-				condWait(&data->procLimiterCond, &data->mutex);
-            if(createProcess(argVector, data->pidList)) {
-                data->childCnt++;
-				condSignal(&data->childCntCond);
-            }
-            mutexUnlock(&data->mutex);
+            pthread_t processingThread;
+            char **argVectorCopy = copyStringVector(argVector, 
+                                                    numArgs);
+            if ((argVectorCopy == NULL) || 
+                (pthread_create(&processingThread, 
+                           NULL, 
+                           processForkRequest,
+                           (void*) argVectorCopy) != 0))
+                fprintf(stderr, "Error processing arguments\n");
         }
     }
     return EXIT_FAILURE; /* This line should not be executed */

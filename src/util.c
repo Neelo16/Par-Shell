@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <pthread.h>
 #include "util.h"
 
 int getTotalRuntime(FILE *f) {
@@ -76,4 +77,30 @@ int getNumLines(FILE *f) {
 
     return fgetc(f) == '\n'? cnt : cnt + 1; /* Checks if there's a line at the end
                                                without a newline character */
+}
+
+char *copyString(char *string){
+    char *newString = (char*) malloc(sizeof(char)*(strlen(string)+1));
+    char *aux = newString;
+
+    while( (*aux++ = *string++) );
+
+    return newString;
+}
+
+char **copyStringVector(char **stringVector, int size) {
+    char **newVector;
+    int i = 0;
+    if(stringVector == NULL || size == 0) return NULL;
+    newVector = (char**) malloc(sizeof(char*)*(size+1));
+
+    if(newVector == NULL) return NULL;
+
+    newVector[size] = NULL;
+    while(i != size){
+        newVector[i] = copyString(stringVector[i]);
+        i++;
+    }
+
+    return newVector;
 }

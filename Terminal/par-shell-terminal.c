@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
     pipe_fd = open(argv[1], O_WRONLY);
 
     commandLength = snprintf(command, BUFFER_SIZE, "new_parshell_terminal %d\n", pid);
-    write(pipe_fd, command, commandLength); /* :( */
+    write(pipe_fd, command, commandLength); /* TODO ERROR CHEKC */
 
     if (pipe_fd < 0) {
         perror("Error opening the pipe");
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
         }
 
         else if (!strcmp(command, "exit\n")) {
-            
+
             commandLength = snprintf(command, BUFFER_SIZE, 
                                      "exiting_parshell_terminal %d\n",
                                       pid);

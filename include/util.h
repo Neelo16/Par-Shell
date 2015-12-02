@@ -24,4 +24,12 @@ void condSignal(pthread_cond_t *cond);
    Given file's position indicator will be set to the end of the file */
 int getNumLines(FILE *f);
 
+/* Copies a vector of strings with the given size, returning a
+   vector with size+1 pointers, with the last one set to NULL. 
+   Returns NULL on exit. */
+char **copyStringVector(char **stringVector, int size);
+
+/* Auxiliar function to be used by copyStringVector */
+char *copyString(char *string);
+
 #endif

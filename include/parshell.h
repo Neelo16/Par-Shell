@@ -32,6 +32,11 @@ void exitShell();
    Returns 1 on success and 0 on failure */
 int createProcess(char *argVector[], list_t *pidList);
 
+/* Creates a new thread to process a request to create a
+ * new child process.
+ */
+void *processForkRequest(void *args);
+
 /* Function that is run on a separate thread to monitor end times of
    forked processes */
 void *monitorChildren(void *arg);
