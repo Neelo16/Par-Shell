@@ -3,7 +3,7 @@
 
 typedef struct terminalListItem {
 	int pid;
-	terminalListItem *next;
+	struct terminalListItem *next;
 }* terminalList_t;
 
 /* Create a new list for storing pids. Returns NULL on error */
