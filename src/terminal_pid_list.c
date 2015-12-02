@@ -13,16 +13,22 @@ terminalList_t createPidList() {
 int insertPid(int pid, terminalList_t list) {
     terminalListItem_t next;
     terminalListItem_t item;
-    if (list == NULL) return 0;
+
+    if (list == NULL) 
+        return 0;
+
     next = list->first;
     item = (terminalListItem_t) malloc(sizeof(struct terminalListItem));
+
     if(item != NULL) {
         item->pid = pid;
         item->next = next;
     }
     else 
         return 0;
+
     list->first = item;
+    
     return 1;
 }
 

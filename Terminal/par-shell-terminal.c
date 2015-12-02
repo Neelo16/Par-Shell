@@ -22,8 +22,23 @@ int main(int argc, char const *argv[])
 
     pipe_fd = open(argv[1], O_WRONLY);
 
-    commandLength = snprintf(command, BUFFER_SIZE, "new_parshell_terminal %d\n", pid);
-    write(pipe_fd, command, commandLength); /* TODO ERROR CHEKC */
+    if (pipe_fd < 0) {
+        perror("Error opening given pipe");
+        return EXIT_FAILURE;
+    }
+
+    commandLength = snprintf(command, 
+                             BUFFER_SIZE, 
+                             "new_parshell_terminal %d\n", 
+                             pid);
+
+    if (commandLength < 0) {
+        fprintf(stderr, "Error informing par-shell of new terminal\n");
+        return EXIT_FAILURE;
+    }
+    
+    if (write(pipe_fd, command, commandLength) < 0)
+        perror("Error sending command to par-shell");
 
     if (pipe_fd < 0) {
         perror("Error opening the pipe");
@@ -46,14 +61,41 @@ int main(int argc, char const *argv[])
                                      "stats %s\n", 
                                      pipePathName);
 
-            write(pipe_fd, command, commandLength); /* TODO ERROR CHEKC */
+            if (commandLength < 0) {
+                fprintf(stderr, "Error getting stats");
+                continue;
+            }
+
+            if (write(pipe_fd, command, commandLength) < 0) {
+                perror("Error asking par-shell for stats");
+                continue;
+            }
+
             stats_fd = open(pipePathName, O_RDONLY);
-            read(stats_fd, &numChildrenRun, sizeof(int) / sizeof(char));
-            read(stats_fd, &totalExec, sizeof(int) / sizeof(char));
-            printf("Running processes: %d\n", numChildrenRun);
-            printf("Total Execution Time: %d\n", totalExec);
-            close(stats_fd);
-            unlink(pipePathName);
+
+            if (stats_fd < 0) {
+                perror("Error opening pipe for communication with "
+                       "main par-shell");
+                continue;
+            }
+
+            printf("Running processes: ");
+            if (read(stats_fd, &numChildrenRun, sizeof(int) / sizeof(char)) < 0)
+                puts("Undetermined");
+            else
+                printf("%d\n", numChildrenRun);
+
+            printf("Total Execution Time: ");
+            if (read(stats_fd, &totalExec, sizeof(int) / sizeof(char)) < 0)
+                puts("Undetermined");
+            else
+                printf("%d\n", totalExec);
+            
+            if (close(stats_fd))
+                perror("Error closing pipe");
+
+            if (unlink(pipePathName))
+                perror("Error unlinking pipe");
         }
 
         else if (!strcmp(command, "exit\n")) {
@@ -62,14 +104,19 @@ int main(int argc, char const *argv[])
                                      "exiting_parshell_terminal %d\n",
                                       pid);
 
-            write(pipe_fd, command, commandLength); /* You know what to do */
-            close(pipe_fd);
+            if (commandLength < 0 || write(pipe_fd, command, commandLength) < 0)
+                perror("Error informing par-shell about terminal termination");
+
+            if (close(pipe_fd))
+                perror("Error closing pipe");
+
             return EXIT_SUCCESS;
         }
 
         else {
             commandLength = strlen(command);
-            write(pipe_fd, command, commandLength);
+            if (write(pipe_fd, command, commandLength) < 0)
+                perror("Error sending command to par-shell");
         }
     }
 
