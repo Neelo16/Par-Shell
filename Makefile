@@ -4,7 +4,7 @@ BUILDDIR = build
 SOURCES = $(shell find $(SRCDIR) -name '*.$(EXT)')
 EXT = c
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(EXT)=.o))
-CFLAGS =-Wall -pedantic -g -pthread
+CFLAGS =-Wall -pedantic -pthread
 CC = gcc
 TARGET = par-shell
 SECOND_TARGET = par-shell-terminal
