@@ -7,11 +7,12 @@ OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(EXT)=.o))
 CFLAGS =-Wall -pedantic -g -pthread
 CC = gcc
 TARGET = par-shell
+SECOND_TARGET = par-shell-terminal
 
-all: $(TARGET) par-shell-terminal
+all: $(TARGET) $(SECOND_TARGET)
 
 par-shell-terminal:
-	(cd Terminal; gcc -o ../par-shell-terminal par-shell-terminal.c)
+	(cd Terminal; $(CC) -o ../$(SECOND_TARGET) $(SECOND_TARGET).c)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -I $(INCDIR) $^ -o $(TARGET)
