@@ -11,7 +11,7 @@ SECOND_TARGET = par-shell-terminal
 
 all: $(TARGET) $(SECOND_TARGET)
 
-par-shell-terminal:
+$(SECOND_TARGET): Terminal/$(SECOND_TARGET).c
 	(cd Terminal; $(CC) -o ../$(SECOND_TARGET) $(SECOND_TARGET).c)
 
 $(TARGET): $(OBJS)

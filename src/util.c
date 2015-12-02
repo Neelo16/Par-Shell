@@ -99,6 +99,7 @@ char **copyStringVector(char **stringVector, int size) {
     newVector[size] = NULL;
     while(i != size){
         newVector[i] = copyString(stringVector[i]);
+        puts(newVector[i]);
         i++;
     }
 

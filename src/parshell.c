@@ -87,15 +87,15 @@ int createProcess(char *argVector[], list_t *pidList) {
         return 0;
     }
     else if (pid == 0) {
-    int pid = (int) getpid();
-    char buffer[BUFFER_SIZE];
-    int fd = -1;
-    snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
-    fclose(stdout); 
-    fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
+        int pid = getpid();
+        char buffer[BUFFER_SIZE];
+        int fd = -1;
+        snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid); /* TODO Error checking */
+        fclose(stdout); 
+        fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); /* TODO ERRR CHEKC*/
         execv(argVector[0], argVector);
         perror("Error executing process");
-    close(fd);
+        close(fd);
         exit(EXIT_FAILURE);
     }
     else {
@@ -122,8 +122,11 @@ void *processForkRequest(void *args) {
     }
     mutexUnlock(&data->mutex);
 
-    while (*argv != NULL)
+    while (*argv != NULL) {
         free(*argv++);
+    }
+
+    free( (char**) args);
 
     pthread_exit(NULL);
 }
@@ -266,11 +269,15 @@ int main(int argc, char const *argv[]) {
         }
         else {
             pthread_t processingThread;
+            pthread_attr_t attr;
             char **argVectorCopy = copyStringVector(argVector, 
                                                     numArgs);
             if ((argVectorCopy == NULL) || 
+                (pthread_attr_init(&attr)) ||
+                (pthread_attr_setdetachstate(&attr,
+                                             PTHREAD_CREATE_DETACHED)) ||
                 (pthread_create(&processingThread, 
-                           NULL, 
+                           &attr, 
                            processForkRequest,
                            (void*) argVectorCopy) != 0))
                 fprintf(stderr, "Error processing arguments\n");
