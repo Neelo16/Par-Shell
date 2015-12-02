@@ -143,10 +143,10 @@ void handleSignal(int sig) {
 int main(int argc, char const *argv[]) {
 
     int i;
+	int numLines;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
-    int numLines;
 	mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
 	close(fileno(stdin));
 	open("/tmp/par-shell-in", O_RDONLY);
