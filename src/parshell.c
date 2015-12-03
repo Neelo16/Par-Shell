@@ -20,6 +20,7 @@ sharedData_t data;
 terminalList_t terminalList;
 pthread_t monitorThread;
 int control_open_fd;
+sigset_t blockSIGINTSet; 
 
 void *monitorChildren(void *arg) {
     time_t endtime;
@@ -105,6 +106,7 @@ int createProcess(char *argVector[], list_t *pidList) {
             }
         }
 
+        pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
         execv(argVector[0], argVector);
         perror("Error executing process");
         close(fd);
@@ -186,7 +188,8 @@ int main(int argc, char const *argv[]) {
     int i;
     int numLines;
     char buffer[BUFFER_SIZE];
-    char *argVector[ARGNUM]; 
+    char *argVector[ARGNUM];
+
     data = (sharedData_t) malloc(sizeof(struct sharedData));
 
     unlink("/tmp/par-shell-in"); /* makes sure we don't have a leftover */
@@ -261,11 +264,20 @@ int main(int argc, char const *argv[]) {
     pthread_cond_init(&data->childCntCond, NULL);
     pthread_cond_init(&data->procLimiterCond, NULL);
 
+    /* Blocks the SIGINT signal in the thread signal mask  */
+    /* to prevent the monitor thread from trying to handle */
+    /* that signal.                                        */
+    sigemptyset(&blockSIGINTSet);
+    sigaddset(&blockSIGINTSet, SIGINT);
+    pthread_sigmask(SIG_SETMASK, &blockSIGINTSet, NULL);
+
     if (pthread_create(&monitorThread, NULL, monitorChildren, NULL)) {
         fprintf(stderr, "Failed to create thread.\n");
         return EXIT_FAILURE;
     }
 
+    pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
+    
     for(i = 0; i < ARGNUM; i++)
         argVector[i] = NULL;
 
@@ -320,6 +332,7 @@ int main(int argc, char const *argv[]) {
             pthread_attr_t attr;
             char **argVectorCopy = copyStringVector(argVector, 
                                                     numArgs);
+            pthread_sigmask(SIG_BLOCK, &blockSIGINTSet, NULL);
             if ((argVectorCopy == NULL) ||
 
                 /* A detached thread is created to deal with  */
@@ -335,6 +348,7 @@ int main(int argc, char const *argv[]) {
                                 (void*) argVectorCopy))
                 )
                 fprintf(stderr, "Error processing arguments\n");
+            pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
         }
     }
 
