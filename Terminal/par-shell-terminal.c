@@ -22,9 +22,9 @@ int main(int argc, char const *argv[])
     }
 
     if  (snprintf(pipePathName, 
-                             BUFFER_SIZE, 
-                             "/tmp/par-shell-terminal-%d", 
-                             pid) < 0) {
+                  BUFFER_SIZE, 
+                  "/tmp/par-shell-terminal-%d", 
+                  pid) < 0) {
         fprintf(stderr, "Error starting terminal, exiting...\n");
         return EXIT_FAILURE;
     }
