@@ -13,10 +13,21 @@ int main(int argc, char const *argv[])
     int pid = getpid();
     int commandLength = 0;
     char command[BUFFER_SIZE];
+    char pipePathName[BUFFER_SIZE];
     memset(command, 0x0, BUFFER_SIZE);
 
     if (argc < 2) {
         puts("Usage: par-shell-terminal <path to pipe>");
+        return EXIT_FAILURE;
+    }
+
+    commandLength = snprintf(pipePathName, 
+                             BUFFER_SIZE, 
+                             "/tmp/par-shell-terminal-%d", 
+                             pid);
+
+    if (commandLength < 0) {
+        fprintf(stderr, "Error starting terminal, exiting...\n");
         return EXIT_FAILURE;
     }
 
@@ -47,18 +58,6 @@ int main(int argc, char const *argv[])
             int stats_fd;
             int numChildrenRun = 0;
             int totalExec = 0;
-            char pipePathName[BUFFER_SIZE];
-
-            commandLength = snprintf(pipePathName, 
-                                     BUFFER_SIZE, 
-                                     "/tmp/par-shell-terminal-%d", 
-                                     pid);
-
-            if (commandLength < 0) {
-                fprintf(stderr, "Error creating pipe pathname, "
-                                " will not print stats\n");
-                continue;
-            }
 
             unlink(pipePathName);
 
