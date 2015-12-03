@@ -268,7 +268,7 @@ int main(int argc, char const *argv[]) {
     /* that signal.                                        */
     sigemptyset(&blockSIGINTSet);
     sigaddset(&blockSIGINTSet, SIGINT);
-    pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
+    pthread_sigmask(SIG_BLOCK, &blockSIGINTSet, NULL);
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, NULL)) {
         fprintf(stderr, "Failed to create thread.\n");
@@ -334,26 +334,42 @@ int main(int argc, char const *argv[]) {
             char **argVectorCopy = copyStringVector(argVector, 
                                                     numArgs);
 
-            /* Just like when creating the monitor thread, we */
-            /* block SIGINT for the created thread so that it */
-            /* is handled only by the main thread             */
-            pthread_sigmask(SIG_BLOCK, &blockSIGINTSet, NULL);
-            if ((argVectorCopy == NULL) ||
+            if (argVectorCopy == NULL) {
+                fprintf(stderr, "Error copying arguments for request "
+                                "processing, will not create process\n");
+                continue;
+            }
 
                 /* A detached thread is created to deal with  */
                 /* the launching of child processes.          */
                 /* If par-shell is busy the thread is blocked */
 
-                (pthread_attr_init(&attr)) ||
-                (pthread_attr_setdetachstate(&attr,
-                                             PTHREAD_CREATE_DETACHED)) ||
-                (pthread_create(&processingThread,       
-                                &attr,                   
-                                processForkRequest,   
-                                (void*) argVectorCopy))
-                )
-                fprintf(stderr, "Error processing arguments\n");
+            if (pthread_attr_init(&attr)) {
+                fprintf(stderr, "Error setting attributes for "
+                                "request processing, will not "
+                                "create process\n");
+                continue;
+            }
+
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+            /* Just like when creating the monitor thread, we */
+            /* block SIGINT for the created thread so that it */
+            /* is handled only by the main thread             */
+            pthread_sigmask(SIG_BLOCK, &blockSIGINTSet, NULL);
+
+            if (pthread_create(&processingThread,       
+                               &attr,                   
+                               processForkRequest,   
+                               (void*) argVectorCopy))
+                fprintf(stderr, "Error creating thread for request, "
+                                "will not create process\n");;
+
             pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
+
+            if (pthread_attr_destroy(&attr))
+                fprintf(stderr, "Error destroying pthread attributes\n");
+
         }
     }
 
