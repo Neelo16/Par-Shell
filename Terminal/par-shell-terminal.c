@@ -21,12 +21,10 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
-    commandLength = snprintf(pipePathName, 
+    if  (snprintf(pipePathName, 
                              BUFFER_SIZE, 
                              "/tmp/par-shell-terminal-%d", 
-                             pid);
-
-    if (commandLength < 0) {
+                             pid) < 0) {
         fprintf(stderr, "Error starting terminal, exiting...\n");
         return EXIT_FAILURE;
     }

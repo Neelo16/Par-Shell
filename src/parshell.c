@@ -184,7 +184,6 @@ void handleSignal(int sig) {
 
 int main(int argc, char const *argv[]) {
 
-    int i;
     int numLines;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM];
@@ -278,9 +277,6 @@ int main(int argc, char const *argv[]) {
     /* Unblocks SIGINT again so the main thread can handle it  */
     /* properly                                                */
     pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
-
-    for(i = 0; i < ARGNUM; i++)
-        argVector[i] = NULL;
 
     if (signal(SIGINT, handleSignal) == SIG_ERR)
         perror("Error setting handler for SIGINT, will proceed "
