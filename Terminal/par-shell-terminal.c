@@ -49,14 +49,23 @@ int main(int argc, char const *argv[])
             int totalExec = 0;
             char pipePathName[BUFFER_SIZE];
 
-            commandLength = snprintf(pipePathName, BUFFER_SIZE, "/tmp/par-shell-terminal-%d", pid);
+            commandLength = snprintf(pipePathName, 
+                                     BUFFER_SIZE, 
+                                     "/tmp/par-shell-terminal-%d", 
+                                     pid);
 
             if (commandLength < 0) {
-                fprintf(stderr, "Error creating RO pipe pathname");
-                return EXIT_FAILURE;
+                fprintf(stderr, "Error creating RO pipe pathname, "
+                                " will not print stats\n");
+                continue;
             }
 
-            mkfifo(pipePathName, S_IRUSR | S_IWUSR);
+            unlink(pipePathName);
+
+            if (mkfifo(pipePathName, S_IRUSR | S_IWUSR)) {
+                perror("Error creating pipe, will not print stats");
+                continue;
+            }
 
             commandLength = snprintf(command, BUFFER_SIZE, 
                                      "stats %s\n", 

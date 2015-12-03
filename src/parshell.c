@@ -92,13 +92,18 @@ int createProcess(char *argVector[], list_t *pidList) {
         int fd = -1;
 
         if (snprintf(buffer, BUFFER_SIZE, "par-shell-out-%d.txt", pid) < 0)
-            fprintf(stderr, "Error creating process output filename\n"); 
+            fprintf(stderr, "Error creating process output filename, "
+                            "will not redirect output\n");
+        else { 
 
-        fclose(stdout); 
-        fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); 
+            fclose(stdout); 
+            fd = open(buffer, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR); 
 
-        if (fd < 0) 
-            perror("Error opening process output file"); /* FIXME should it continue? (/\same in snprintf)*/
+            if (fd < 0) {
+                perror("Error opening process output file");
+                exit(EXIT_FAILURE);
+            }
+        }
 
         execv(argVector[0], argVector);
         perror("Error executing process");
@@ -183,7 +188,16 @@ int main(int argc, char const *argv[]) {
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM]; 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
-    mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR);
+
+    unlink("/tmp/par-shell-in"); /* makes sure we don't have a leftover */
+                                 /* pipe from a previous instance of    */
+                                 /* par-shell                           */
+
+    if (mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR)) {
+        perror("Error creating pipe");
+        return EXIT_FAILURE;
+    }
+
     close(fileno(stdin));
     if (open("/tmp/par-shell-in", O_RDONLY)) {
         perror("Error replacing stdin with pipe");
@@ -288,18 +302,14 @@ int main(int argc, char const *argv[]) {
 
             if (terminalPipe_fd < 0) {
                 perror("Error opening pipe");
-                killAllPids(terminalList);
-                return EXIT_FAILURE;
+                continue;
             }
 
             mutexLock(&data->mutex);
             if (write(terminalPipe_fd, &data->childCnt, sizeof(int)) < 0 ||
-                write(terminalPipe_fd, &data->totalRuntime, sizeof(int)) < 0) {
-
+                write(terminalPipe_fd, &data->totalRuntime, sizeof(int)) < 0)
                 perror("Error sending stats to par-shell-terminal");
-                killAllPids(terminalList);
-                return EXIT_FAILURE;
-            }
+
             mutexUnlock(&data->mutex);
 
             if (close(terminalPipe_fd) < 0)
