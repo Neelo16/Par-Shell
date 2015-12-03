@@ -26,7 +26,7 @@ int getNumLines(FILE *f);
 
 /* Copies a vector of strings with the given size, returning a
    vector with size+1 pointers, with the last one set to NULL. 
-   Returns NULL on exit. */
+   Returns NULL on error. */
 char **copyStringVector(char **stringVector, int size);
 
 /* Returns a copy of the given string. The copy must be freed from
