@@ -11,6 +11,7 @@
 #define ARGNUM 7
 #define BUFFER_SIZE 512
 #define MAXPAR 4
+#define PARSHELL_PIPE_PATH "/tmp/par-shell-in"
 
 typedef struct sharedData
 {

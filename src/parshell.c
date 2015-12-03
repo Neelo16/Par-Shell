@@ -106,7 +106,6 @@ int createProcess(char *argVector[], list_t *pidList) {
             }
         }
 
-        pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
         execv(argVector[0], argVector);
         perror("Error executing process");
         close(fd);
@@ -168,7 +167,7 @@ void exitShell() {
     if (close(control_open_fd))
         perror("Error closing pipe");
 
-    if (unlink("/tmp/par-shell-in"))
+    if (unlink(PARSHELL_PIPE_PATH))
         perror("Error unlinking pipe");
 
     lst_print(data->pidList);
@@ -192,26 +191,26 @@ int main(int argc, char const *argv[]) {
 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
 
-    unlink("/tmp/par-shell-in"); /* makes sure we don't have a leftover */
-                                 /* pipe from a previous instance of    */
-                                 /* par-shell                           */
+    unlink(PARSHELL_PIPE_PATH); /* makes sure we don't have a leftover */
+                                /* pipe from a previous instance of    */
+                                /* par-shell                           */
 
-    if (mkfifo("/tmp/par-shell-in", S_IRUSR | S_IWUSR)) {
+    if (mkfifo(PARSHELL_PIPE_PATH, S_IRUSR | S_IWUSR)) {
         perror("Error creating pipe");
         return EXIT_FAILURE;
     }
 
     close(fileno(stdin));
-    if (open("/tmp/par-shell-in", O_RDONLY)) {
+    if (open(PARSHELL_PIPE_PATH, O_RDONLY)) {
         perror("Error replacing stdin with pipe");
         return EXIT_FAILURE;
     }
 
-    control_open_fd = open("/tmp/par-shell-in", /* file descriptor used to  */
-                            O_WRONLY);          /* prevent the pipe from    */
-                                                /* becoming invalid when no */
-                                                /* terminals are writing to */
-    if (control_open_fd < 0)                    /* it                       */
+    control_open_fd = open(PARSHELL_PIPE_PATH, /* file descriptor used to  */
+                            O_WRONLY);         /* prevent the pipe from    */
+                                               /* becoming invalid when no */
+                                               /* terminals are writing to */
+    if (control_open_fd < 0)                   /* it                       */
         perror("Error opening pipe");
 
     if (data == NULL) {
@@ -269,15 +268,17 @@ int main(int argc, char const *argv[]) {
     /* that signal.                                        */
     sigemptyset(&blockSIGINTSet);
     sigaddset(&blockSIGINTSet, SIGINT);
-    pthread_sigmask(SIG_SETMASK, &blockSIGINTSet, NULL);
+    pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
 
     if (pthread_create(&monitorThread, NULL, monitorChildren, NULL)) {
         fprintf(stderr, "Failed to create thread.\n");
         return EXIT_FAILURE;
     }
 
+    /* Unblocks SIGINT again so the main thread can handle it  */
+    /* properly                                                */
     pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
-    
+
     for(i = 0; i < ARGNUM; i++)
         argVector[i] = NULL;
 
@@ -332,6 +333,10 @@ int main(int argc, char const *argv[]) {
             pthread_attr_t attr;
             char **argVectorCopy = copyStringVector(argVector, 
                                                     numArgs);
+
+            /* Just like when creating the monitor thread, we */
+            /* block SIGINT for the created thread so that it */
+            /* is handled only by the main thread             */
             pthread_sigmask(SIG_BLOCK, &blockSIGINTSet, NULL);
             if ((argVectorCopy == NULL) ||
 
