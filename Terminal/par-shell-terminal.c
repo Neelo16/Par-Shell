@@ -32,16 +32,16 @@ int main(int argc, char const *argv[])
                              "new_parshell_terminal %d\n", 
                              pid);
 
-    if (commandLength < 0) {
+    if ((commandLength < 0) || (write(pipe_fd, command, commandLength) < 0)) {
         fprintf(stderr, "Error informing par-shell of new terminal\n");
         return EXIT_FAILURE;
     }
-    
-    if (write(pipe_fd, command, commandLength) < 0)
-        perror("Error sending command to par-shell");
 
     while (1) {
-        fgets(command, BUFFER_SIZE, stdin);
+        if (fgets(command, BUFFER_SIZE, stdin) == NULL) {
+            fprintf(stderr,"Error reading input\n");
+            return EXIT_FAILURE;
+        }
 
         if (!strcmp(command, "stats\n")) {
             int stats_fd;
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
                                      pid);
 
             if (commandLength < 0) {
-                fprintf(stderr, "Error creating RO pipe pathname, "
+                fprintf(stderr, "Error creating pipe pathname, "
                                 " will not print stats\n");
                 continue;
             }
