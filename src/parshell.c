@@ -20,7 +20,6 @@ sharedData_t data;
 terminalList_t terminalList;
 pthread_t monitorThread;
 int control_open_fd;
-sigset_t blockSIGINTSet; 
 
 void *monitorChildren(void *arg) {
     time_t endtime;
@@ -191,6 +190,7 @@ int main(int argc, char const *argv[]) {
     int numLines;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM];
+    sigset_t blockSIGINTSet; 
 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
 
