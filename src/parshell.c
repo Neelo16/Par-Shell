@@ -195,8 +195,6 @@ int main(int argc, char const *argv[]) {
     sigset_t blockSIGINTSet;
     struct sigaction signalStructure; 
 
-    data = (sharedData_t) malloc(sizeof(struct sharedData));
-
     unlink(PARSHELL_PIPE_PATH); /* makes sure we don't have a leftover */
                                 /* pipe from a previous instance of    */
                                 /* par-shell                           */
@@ -218,6 +216,8 @@ int main(int argc, char const *argv[]) {
                                                /* terminals are writing to */
     if (control_open_fd < 0)                   /* it                       */
         perror("Error opening pipe");
+
+    data = (sharedData_t) malloc(sizeof(struct sharedData));
 
     if (data == NULL) {
         perror("Error allocating space for shared variables in main");
@@ -285,6 +285,7 @@ int main(int argc, char const *argv[]) {
     /* properly                                                */
     pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
 
+    /* Sets a handler function to handle the SIGINT signal. */
     memset(&signalStructure, 0x0, sizeof(signalStructure));
     signalStructure.sa_handler = handleSignal;
     signalStructure.sa_mask = blockSIGINTSet;
@@ -310,12 +311,12 @@ int main(int argc, char const *argv[]) {
                 kill(pid, SIGKILL);
             }
             else
-                printf("[+] Par-Shell Terminal with pid %d connected\n",pid);
+                printf("[+] Par-Shell Terminal with pid %d connected\n", pid);
         }
         else if (!strcmp("exiting_parshell_terminal", argVector[0])) {
             int pid = atoi(argVector[1]);
             removePid(pid, terminalList);
-            printf("[-] Par-Shell Terminal with pid %d disconnected\n",pid);
+            printf("[-] Par-Shell Terminal with pid %d disconnected\n", pid);
         }
         else if (!strcmp("stats", argVector[0])) {
             char *terminalPipePath = argVector[1];

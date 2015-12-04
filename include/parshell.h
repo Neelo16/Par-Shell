@@ -42,7 +42,7 @@ int createProcess(char *argVector[], list_t *pidList);
  */
 void *processForkRequest(void *args);
 
-/* Function that is run on a separate thread to monitor end times of
+/* Function that runs on a separate thread to monitor end times of
  * forked processes 
  */
 void *monitorChildren(void *arg);
