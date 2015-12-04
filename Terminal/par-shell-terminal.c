@@ -14,7 +14,6 @@ int main(int argc, char const *argv[])
     int commandLength = 0;
     char command[BUFFER_SIZE];
     char pipePathName[BUFFER_SIZE];
-    memset(command, 0x0, BUFFER_SIZE);
 
     if (argc < 2) {
         puts("Usage: par-shell-terminal <path to pipe>");
@@ -28,6 +27,8 @@ int main(int argc, char const *argv[])
         fprintf(stderr, "Error starting terminal, exiting...\n");
         return EXIT_FAILURE;
     }
+    
+    memset(command, 0x0, BUFFER_SIZE);
 
     pipe_fd = open(argv[1], O_WRONLY);
 
