@@ -155,6 +155,12 @@ void exitShell() {
     mutexUnlock(&data->mutex);
     condSignal(&data->childCntCond);
 
+    if (close(control_open_fd))
+        perror("Error closing pipe");
+
+    if (unlink(PARSHELL_PIPE_PATH))
+        perror("Error unlinking pipe");
+
     if (pthread_join(monitorThread, NULL))
         fprintf(stderr, "Error waiting for monitoring thread.\n");
 
@@ -167,12 +173,6 @@ void exitShell() {
     if (pthread_cond_destroy(&data->childCntCond) || 
         pthread_cond_destroy(&data->procLimiterCond))
         fprintf(stderr, "Error destroying condition variables\n");
-
-    if (close(control_open_fd))
-        perror("Error closing pipe");
-
-    if (unlink(PARSHELL_PIPE_PATH))
-        perror("Error unlinking pipe");
 
     lst_print(data->pidList);
 
