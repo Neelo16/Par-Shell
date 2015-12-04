@@ -44,6 +44,8 @@ void *monitorChildren(void *arg) {
 
         if (pid == -1)
             perror("Error in wait");
+        else
+            printf("Process %d terminated\n", pid);
 
         endtime = time(NULL);
 
@@ -112,6 +114,8 @@ int createProcess(char *argVector[], list_t *pidList) {
         exit(EXIT_FAILURE);
     }
     else {
+        printf("Command %s launched with PID %d\n",
+               argVector[0], pid);
         time_t starttime = time(NULL);
         if (!insert_new_process(pidList, pid, starttime))
             fprintf(stderr, "Failed to save info for process %d, "

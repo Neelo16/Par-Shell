@@ -14,11 +14,15 @@ int main(int argc, char const *argv[])
     int commandLength = 0;
     char command[BUFFER_SIZE];
     char pipePathName[BUFFER_SIZE];
+    char *user = getenv("USER"); /* Used just to adorn the prompt line */
 
     if (argc < 2) {
         puts("Usage: par-shell-terminal <path to pipe>");
         return EXIT_FAILURE;
     }
+
+    if (user == NULL)
+        user = "user";
 
     if  (snprintf(pipePathName, 
                   BUFFER_SIZE, 
@@ -48,6 +52,11 @@ int main(int argc, char const *argv[])
     }
 
     while (1) {
+
+        if (isatty(fileno(stdin))) /* Checks if input source is a terminal */
+                                   /* or pipe/file                         */
+            printf("%s@par-shell-terminal$ ", user);
+
         if (fgets(command, BUFFER_SIZE, stdin) == NULL) {
             fprintf(stderr,"Error reading input\n");
             return EXIT_FAILURE;
