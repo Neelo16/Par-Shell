@@ -71,6 +71,9 @@ void killAllPids(terminalList_t list) {
     while (item != NULL) {
         if (kill(item->pid, SIGKILL))
             perror("Error killing process");
+        else
+            printf("[-] Killed Par-Shell Terminal with pid %d\n",
+                   item->pid);
         item = item->next;
     }
 }

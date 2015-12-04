@@ -115,12 +115,12 @@ int createProcess(char *argVector[], list_t *pidList) {
     else {
         time_t starttime = time(NULL);
 
+        printf("[+] Command %s launched with PID %d\n",
+               argVector[0], pid);
+
         if (!insert_new_process(pidList, pid, starttime))
             fprintf(stderr, "Failed to save info for process %d, "
                             "will not display process info on exit\n", pid);
-        else
-            printf("[+] Command %s launched with PID %d\n",
-               argVector[0], pid);
         return 1;
     }
 }
@@ -307,12 +307,12 @@ int main(int argc, char const *argv[]) {
                 kill(pid, SIGKILL);
             }
             else
-                printf("[+] Parshell_terminal with pid %d joined\n",pid);
+                printf("[+] Par-Shell Terminal with pid %d connected\n",pid);
         }
         else if (!strcmp("exiting_parshell_terminal", argVector[0])) {
             int pid = atoi(argVector[1]);
             removePid(pid, terminalList);
-            printf("[-] Parshell_terminal with pid %d exited\n",pid);
+            printf("[-] Par-Shell Terminal with pid %d disconnected\n",pid);
         }
         else if (!strcmp("stats", argVector[0])) {
             char *terminalPipePath = argVector[1];
