@@ -192,7 +192,8 @@ int main(int argc, char const *argv[]) {
     int numLines;
     char buffer[BUFFER_SIZE];
     char *argVector[ARGNUM];
-    sigset_t blockSIGINTSet; 
+    sigset_t blockSIGINTSet;
+    struct sigaction signalStructure; 
 
     data = (sharedData_t) malloc(sizeof(struct sharedData));
 
@@ -284,9 +285,11 @@ int main(int argc, char const *argv[]) {
     /* properly                                                */
     pthread_sigmask(SIG_UNBLOCK, &blockSIGINTSet, NULL);
 
-    if (signal(SIGINT, handleSignal) == SIG_ERR)
-        perror("Error setting handler for SIGINT, will proceed "
-               "without handling the signal");
+    memset(&signalStructure, 0x0, sizeof(signalStructure));
+    signalStructure.sa_handler = handleSignal;
+    signalStructure.sa_mask = blockSIGINTSet;
+
+    sigaction(SIGINT, &signalStructure, NULL);
 
     while (1) {
         int numArgs;
