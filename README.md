@@ -26,6 +26,3 @@ You could be having a life changing experience right now!
 ## But I really like to ask questions...
 
 That's not a question.
-
-## I don't like this part in your program.
-That was Nunow's fault.
