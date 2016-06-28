@@ -26,3 +26,6 @@ You could be having a life changing experience right now!
 ## But I really like to ask questions...
 
 That's not a question.
+
+# Serious talk
+Jokes aside, this project was developed for the Operating Systems subject at Instituto Superior Técnico. It consists of a shell that will run any program in the background (it must be provided with the full path).
